@@ -22,17 +22,11 @@
 # specified in the console for that node.
 
 node testmatt {
-	include common
-	include mount_drives
-	include sssd
-    include environment_modules
+  include std_centos
 }
 node puppetSSSDtest {
-	include common
-	include mount_drives
-	include sssd
+  include std_centos
 }
 node vais-macbook-pro-3 {
-     include mac
-     include common
+     include std_mac
 }

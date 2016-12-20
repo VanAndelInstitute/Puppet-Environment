@@ -1,5 +1,7 @@
 class environment_modules {
-    
+   
+    $global_bash = '/etc/bashrc'
+
     # install the module utility
     package { 'environment-modules' :
       ensure => present,
@@ -20,36 +22,40 @@ class environment_modules {
     } 
 
     # Set up the path
+    file_line { 'Comment' :
+		path => $global_bash,
+		line => '## Managed by Puppet.',
+    }
     file_line { 'relion' :
-		path => '/root/.bashrc',
+		path => $global_bash,
 		line => 'export PATH=$PATH:/primary/vari/software/relion/default/bin',
     }
     file_line { 'IMOD' :
-		path => '/root/.bashrc',
+		path => $global_bash,
 		line => 'source /primary/vari/software/IMOD/default/IMOD-linux.sh',
     }
     file_line { 'EMAN2' :
-		path => '/root/.bashrc',
+		path => $global_bash,
 		line => 'source /primary/vari/software/eman2/default/eman2.bashrc',
     }
     file_line { 'MPI_HOME' :
-		path => '/root/.bashrc',
+		path => $global_bash,
 		line => 'export MPI_HOME=/usr/local',
     }
     file_line { 'MPI_RUN' :
-		path => '/root/.bashrc',
+		path => $global_bash,
 		line => 'export MPI_RUN=/usr/local/bin/mpirun',
     }
     file_line { 'LIB_PATH' :
-		path => '/root/.bashrc',
+		path => $global_bash,
 		line => 'export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH',
     }
     file_line { 'Add_Cuda' :
-		path => '/root/.bashrc',
+		path => $global_bash,
 		line => 'module add cuda70',
     }
     file_line { 'Relion_Alias' :
-		path => '/root/.bashrc',
+		path => $global_bash,
 		line => 'alias relion2=/primary/vari/software/relion/relion2-beta/build/bin/relion',
     }
     

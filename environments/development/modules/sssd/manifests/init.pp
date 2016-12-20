@@ -1,7 +1,7 @@
-include krb5
-include samba
-
 class sssd {
+  include krb5
+  include samba
+
   file { '/etc/sssd/sssd.conf' :
 	ensure => present,
 	mode 	=> '0600',
