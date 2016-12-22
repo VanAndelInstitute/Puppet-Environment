@@ -122,7 +122,8 @@ system  /primary/vari/software/eman2/default/add_eman2_to_bashrc.pl
     file { 'cuda70' :
       path => '/usr/share/Modules/modulefiles/cuda70',
       ensure => present,
-      content => '##
+      content => '#%Module -*- tcl -*-
+##
 ## dot modulefile
 ##
 

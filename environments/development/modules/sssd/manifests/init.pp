@@ -57,7 +57,7 @@ override_homedir = /home/%u
   }
 		
   exec { 'authconfig-sssd' :
-  	command 	=> '/usr/bin/net ads join -U admMattH%Puppetisc00l; /usr/sbin/authconfig --enablesssd --enablesssdauth --enablemkhomedir --updateall', 
+  	command 	=> '/usr/sbin/authconfig --enablesssd --enablesssdauth --disableldap --disableldapauth --enablemkhomedir --updateall', 
 	refreshonly => true,
   }
 		

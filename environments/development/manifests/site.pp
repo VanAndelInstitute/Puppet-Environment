@@ -28,5 +28,5 @@ node puppetSSSDtest {
   include std_centos
 }
 node vais-macbook-pro-3 {
-     include std_mac
+  include std_mac
 }

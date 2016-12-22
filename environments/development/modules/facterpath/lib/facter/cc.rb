@@ -82,9 +82,9 @@ def setup()
           msg = d["name"] + " not found on #{$fqdn}. (#{$time})"
         elsif not s.to_s.include? (d["name"])
           msg = d["name"] + " " + d["version"] + " installed on #{$fqdn} after initial configuration. (#{$time})"
-        else
+        else 
           c.each do |x|
-            msg = x["name"] + " " + x["version"] + " should be " + d["name"] + " " + d["version"] if x["name"] == d["name"]
+            msg = x["name"] + " " + x["version"] + " should be " + d["name"] + " " + d["version"] if x["name"] == d["name"] and x["version"] != d["version"]
           end
         end
 		
@@ -99,11 +99,11 @@ def setup()
         prev_drift = Facter.value(:drift)
 				
         msg = "Drift detected on #{$fqdn}. (#{$time})"
-        (prev_drift == $curr_drift) ? Puppet.notice(msg) : Puppet.warning(msg)
+        (prev_drift == $curr_drift) ? Puppet.err(msg) : Puppet.info(msg)
         return 'yes'
 			
       else
-        Puppet.notice ("No drift detected on #{$fqdn}. (#{$time})")
+        Puppet.info ("No drift detected on #{$fqdn}. (#{$time})")
         return 'no'
       end
     end

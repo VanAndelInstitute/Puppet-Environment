@@ -15,9 +15,7 @@ def joined (os)
   when "darwin"
     return ((`dsconfigad -show | awk '/Active Directory Domain/{print $NF}'`).include? "vai")
   when "redhat","centos"
-    # unable to find a command that to accurately determine join status
-    # will return to this later, for now repeated joins do not break the system
-    return true 
+    return ((`net ads info`).include? "vai")
   end
 end
 
@@ -29,11 +27,15 @@ end
 def adjoin (os)
   return if joined(os)
  
+  fqdn = Facter.value(:fqdn)
+
   # Join the machine, command depends on OS 
   case os
   when "darwin"
+    Puppet.err("#{fqdn} was not joined to the AD. Joining now.")
     (`dsconfigad -add #{$host} -u #{$ad_admin} -p #{$ad_admin_pass} -domain #{$domain}`)
   when "redhat","centos"
+    Puppet.err("#{fqdn} was not joined to the AD. Joining now.")
 	(`/usr/bin/net ads join -U #{$ad_admin}%#{$ad_admin_pass}`)
     (`/usr/sbin/authconfig --enablesssd --enablesssdauth --enablemkhomedir --updateall`)
   when "windows"
