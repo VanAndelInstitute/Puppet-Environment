@@ -16,7 +16,7 @@ def joined (os)
     return ((`dsconfigad -show | awk '/Active Directory Domain/{print $NF}'`).include? "vai")
   when "redhat","centos"
     return false
-    #return ((`net ads info`).include? "vai")
+    return ((`net ads info`).include? "vai")
   end
 end
 
