@@ -17,6 +17,7 @@ $backup_occured = false
 #   @return: yes if drift is found, no otherwise
 ##
 def setup()
+
   windows_filepath = "C:/ProgramData/PuppetLabs/facter/facts.d/"
   linux_filepath = "/opt/puppetlabs/facter/facts.d/"
 
@@ -34,6 +35,7 @@ def setup()
 	
   # a configuration file exists, check for inconsistency
   else
+
     # retrieve the local sum of the file
     sum = Digest::MD5.file config_file
 
@@ -42,7 +44,6 @@ def setup()
 		
     # if the sum is not returned, it did not exist
     if(response.nil? || response.empty?)
-			
 	  # delete the local file and attempt to restore another sum
 	  File.delete config_file, $drift
 	  (restore config_file) ? Puppet.notice("File found locally but not remotely. Restoring from cached copy.") : (backup config_file)
@@ -62,7 +63,6 @@ def setup()
 		
     # if the saved config and current config match exactly
     if current == saved
-      
       # send a notice and return
       Puppet.notice ("No drift detected on #{$fqdn}. (#{$time})")
       return 'no'
@@ -75,9 +75,8 @@ def setup()
 	  
       c, s = current.to_a, saved.to_a
 	  difference = (c.size > s.size) ? c - s : s - c
-
       difference.each do |d|
-	    drift = true
+        drift = true
         if not c.to_s.include? (d["name"])
           msg = d["name"] + " not found on #{$fqdn}. (#{$time})"
         elsif not s.to_s.include? (d["name"])
@@ -87,24 +86,21 @@ def setup()
             msg = x["name"] + " " + x["version"] + " should be " + d["name"] + " " + d["version"] if x["name"] == d["name"] and x["version"] != d["version"]
           end
         end
-		
         ignore.push(d["name"])
         Puppet.notice(msg)
-        $curr_drift += msg unless($curr_drift.include? msg)
-      end
-		
-      if drift
-        # capture the previous drift and if it differs from the current drift
-        # send an error alert (goes to email)
-        prev_drift = Facter.value(:drift)
-				
-        msg = "Drift detected on #{$fqdn}. (#{$time})"
-        (prev_drift == $curr_drift) ? Puppet.err(msg) : Puppet.info(msg)
-        return 'yes'
-			
-      else
-        Puppet.info ("No drift detected on #{$fqdn}. (#{$time})")
-        return 'no'
+        ($curr_drift += msg) unless($curr_drift.include? msg)
+	  
+        if drift
+          # capture the previous drift and if it differs from the current drift
+          # send an error alert (goes to email)
+          prev_drift = Facter.value(:drift)
+          msg = "Drift detected on #{$fqdn}. (#{$time})"
+          (prev_drift == $curr_drift) ? Puppet.err(msg) : Puppet.info(msg)
+          return 'yes'
+        else
+          Puppet.notice ("No drift detected on #{$fqdn}. (#{$time})")
+          return 'no'
+        end
       end
     end
   end
@@ -165,7 +161,7 @@ def backup(file)
   msg = "No previous sum found locally or remotely on #{$fqdn}. Capturing fresh configuration."
 	
   # send a warning
-  backup_occured ? (Puppet.warning(msg) and $backup_occured = true) : (Puppet.notice(msg) and $backup_occured = false)
+  backup_occured ? (Puppet.warning(msg) and $backup_occured = true) : (Puppet.info(msg) and $backup_occured = false)
 
   # capture and store the current config, both remotely and locally
   File.open(file, 'w') { |f| f.write($current)}

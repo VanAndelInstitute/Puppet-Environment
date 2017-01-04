@@ -21,12 +21,34 @@
 # will be included in every node's catalog, *in addition* to any classes
 # specified in the console for that node.
 
+# Research machines include /primary/vari/software mounts 
+# as well as environment modules. Standard machines do not.
+
+node matt {
+  include research_centos
+}
 node testmatt {
-  include std_centos
+  include research_centos
 }
 node puppetSSSDtest {
   include std_centos
 }
 node vais-macbook-pro-3 {
   include std_mac
+}
+node /^lens\d+$/ {
+  include research_centos
+}
+node foreman {
+  include std_centos
+  include server
+}
+node /^cryo-em_linux\d+$/ {
+  include research_centos
+}
+node cryo-em-linux02 {
+  include research_centos
+}
+node cryo-em-linux03 {
+  include research_centos
 }

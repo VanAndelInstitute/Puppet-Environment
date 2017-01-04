@@ -6,6 +6,10 @@ class environment_modules {
     package { 'environment-modules' :
       ensure => present,
     }
+    
+    package { 'libgfortran' :
+      ensure => present,
+    }
   
     # create the /cm/share/apps location
     file { '/cm' :
@@ -26,37 +30,92 @@ class environment_modules {
 		path => $global_bash,
 		line => '## Managed by Puppet.',
     }
-    file_line { 'relion' :
-		path => $global_bash,
-		line => 'export PATH=$PATH:/primary/vari/software/relion/default/bin',
+
+    file { 'add_relion':
+      path    => '/etc/profile.d/add_relion.sh',
+      ensure  => present,
+      mode    => '0755',
+      content => 'if ! cat ~/.bashrc | grep "/primary/vari/software/default/bin"; then
+        echo \'export PATH=$PATH:/primary/vari/software/relion/default/bin\' >> ~/.bashrc
+        fi
+
+        ',
     }
-    file_line { 'IMOD' :
-		path => $global_bash,
-		line => 'source /primary/vari/software/IMOD/default/IMOD-linux.sh',
+
+    file { 'add_mpich':
+      path    => '/etc/profile.d/add_mpich.sh',
+      ensure  => present,
+      mode    => '0755',
+      content => 'if ! cat ~/.bashrc | grep "module add mpich314"; then
+      echo "module add mpich314" >> ~/.bashrc
+fi
+
+        ',
     }
-    file_line { 'EMAN2' :
-		path => $global_bash,
-		line => 'source /primary/vari/software/eman2/default/eman2.bashrc',
+
+    file { 'add_cryoem':
+      path    => '/etc/profile.d/add_cryoem.sh',
+      ensure  => present,
+      mode    => '0755',
+      content => 'if ! cat ~/.bashrc | grep "module add cryoem"; then
+        echo "module add cryoem" >> ~/.bashrc
+        fi
+
+        ',
     }
-    file_line { 'MPI_HOME' :
-		path => $global_bash,
-		line => 'export MPI_HOME=/usr/local',
+    
+    file { 'add_MPIHOME':
+      path    => '/etc/profile.d/add_mpihome.sh',
+      ensure  => present,
+      mode    => '0755',
+      content => 'if ! cat ~/.bashrc | grep "MPI_HOME=/usr/local"; then
+        echo \'export MPI_HOME=/usr/local\'
+        fi
+
+        ',
     }
-    file_line { 'MPI_RUN' :
-		path => $global_bash,
-		line => 'export MPI_RUN=/usr/local/bin/mpirun',
+    file { 'add_MPIRUN':
+      path    => '/etc/profile.d/add_mpirun.sh',
+      ensure  => present,
+      mode    => '0755',
+      content => 'if ! cat ~/.bashrc | grep MPI_RUN=/usr/local/bin/mpirun; then
+        echo \'export MPI_RUN=/usr/local/bin/mpirun\'
+        fi
+
+        ',
     }
-    file_line { 'LIB_PATH' :
-		path => $global_bash,
-		line => 'export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH',
+    
+    file { 'add_LIB':
+      path    => '/etc/profile.d/add_lib.sh',
+      ensure  => present,
+      mode    => '0755',
+      content => 'if ! cat ~/.bashrc | grep LD_LIBRARY; then
+        echo \'export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH\'
+        fi
+
+        ',
     }
-    file_line { 'Add_Cuda' :
-		path => $global_bash,
-		line => 'module add cuda70',
+    
+    file { 'add_cuda':
+      path    => '/etc/profile.d/add_cuda.sh',
+      ensure  => present,
+      mode    => '0755',
+      content => 'if ! cat ~/.bashrc | grep "module add cuda70"; then
+        echo "module add cuda70" >> ~/.bashrc
+        fi
+
+        ',
     }
-    file_line { 'Relion_Alias' :
-		path => $global_bash,
-		line => 'alias relion2=/primary/vari/software/relion/relion2-beta/build/bin/relion',
+
+    file { 'add_relionalias':
+      path    => '/etc/profile.d/add_relionalias.sh',
+      ensure  => present,
+      mode    => '0755',
+      content => 'if ! cat ~/.bashrc | grep relion2=/primary/vari/software; then
+        echo "alias relion2=/primary/vari/software/relion/relion2-beta/build/bin/relion" >> ~/.bashrc
+        fi
+
+        ',
     }
     
     # Ensure that the needed modules exist
