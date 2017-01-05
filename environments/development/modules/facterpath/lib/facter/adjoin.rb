@@ -15,8 +15,10 @@ def joined (os)
   when "darwin"
     return ((`dsconfigad -show | awk '/Active Directory Domain/{print $NF}'`).include? "vai")
   when "redhat","centos"
-    return false
     return ((`net ads info`).include? "vai")
+  else
+    puts "Error in AD join. #{os} not currently supported through Puppet."
+    return true
   end
 end
 
@@ -38,8 +40,6 @@ def adjoin (os)
     #Puppet.err("#{fqdn} was not joined to the AD. Joining now.")
 	(`/usr/bin/net ads join -U #{$ad_admin}%#{$ad_admin_pass}`)
     (`/usr/sbin/authconfig --enablesssd --enablesssdauth --enablemkhomedir --updateall`)
-  else
-    puts "Error in AD join. #{os} not currently supported through Puppet."
   end
 end
 

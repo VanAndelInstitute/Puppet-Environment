@@ -60,7 +60,7 @@ def setup()
    	
     # used to capture the current drift of the system
     $curr_drift = ""
-		
+    
     # if the saved config and current config match exactly
     if current == saved
       # send a notice and return
@@ -87,20 +87,20 @@ def setup()
           end
         end
         ignore.push(d["name"])
-        Puppet.notice(msg)
-        ($curr_drift += msg) unless($curr_drift.include? msg)
-	  
-        if drift
-          # capture the previous drift and if it differs from the current drift
-          # send an error alert (goes to email)
-          prev_drift = Facter.value(:drift)
-          msg = "Drift detected on #{$fqdn}. (#{$time})"
-          (prev_drift == $curr_drift) ? Puppet.err(msg) : Puppet.info(msg)
-          return 'yes'
-        else
-          Puppet.notice ("No drift detected on #{$fqdn}. (#{$time})")
-          return 'no'
-        end
+        Puppet.notice("#{msg}")
+        ($curr_drift += msg.to_s) unless($curr_drift.include? msg.to_s)
+      end
+      
+      if drift
+        # capture the previous drift and if it differs from the current drift
+        # send an error alert (goes to email)
+        prev_drift = Facter.value(:drift)
+        msg = "Drift detected on #{$fqdn}. (#{$time})"
+        (prev_drift == $curr_drift) ? Puppet.err(msg) : Puppet.info(msg)
+        return 'yes'
+      else
+        Puppet.notice ("No drift detected on #{$fqdn}. (#{$time})")
+        return 'no'
       end
     end
   end
