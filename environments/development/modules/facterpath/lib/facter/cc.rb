@@ -67,31 +67,9 @@ def setup()
       Puppet.notice ("No drift detected on #{$fqdn}. (#{$time})")
       return 'no'
 
-    # otherwise drift is detected
+    # otherwise drift may exist
     else
-      # array used to ignore duplicate inconsistancies
-	  ignore = Array.new
-	  drift = false
-	  
-      c, s = current.to_a, saved.to_a
-	  difference = (c.size > s.size) ? c - s : s - c
-      difference.each do |d|
-        drift = true
-        if not c.to_s.include? (d["name"])
-          msg = d["name"] + " not found on #{$fqdn}. (#{$time})"
-        elsif not s.to_s.include? (d["name"])
-          msg = d["name"] + " " + d["version"] + " installed on #{$fqdn} after initial configuration. (#{$time})"
-        else 
-          c.each do |x|
-            msg = x["name"] + " " + x["version"] + " should be " + d["name"] + " " + d["version"] if x["name"] == d["name"] and x["version"] != d["version"]
-          end
-        end
-        ignore.push(d["name"])
-        Puppet.notice("#{msg}")
-        ($curr_drift += msg.to_s) unless($curr_drift.include? msg.to_s)
-      end
-      
-      if drift
+      if drift_found(current, saved)
         # capture the previous drift and if it differs from the current drift
         # send an error alert (goes to email)
         prev_drift = Facter.value(:drift)
@@ -104,6 +82,44 @@ def setup()
       end
     end
   end
+end
+
+##
+#   If drift is found this function
+#   logs it to Puppet and returns if drift was found.
+#
+#   @param current: the current packages installed
+#   @param saved:   previously found packages 
+#
+#   @return drift:  was drift found?
+##
+def drift_found(current, saved)
+
+  drift = false
+
+  # convert the current and saved packages to arrays
+  # remove packages found in both to find drift
+  c, s = current.to_a, saved.to_a
+  difference = (c.size > s.size) ? c - s : s - c
+  
+  # determine the type of drift for each difference
+  difference.each do |d|
+    drift = true
+
+    if not c.to_s.include? (d["name"])
+      msg = d["name"] + " not found on #{$fqdn}. (#{$time})"
+    elsif not s.to_s.include? (d["name"])
+      msg = d["name"] + " " + d["version"] + " installed on #{$fqdn} after initial configuration. (#{$time})"
+    else 
+      c.each do |x|
+        msg = x["name"] + " " + x["version"] + " should be " + d["name"] + " " + d["version"] if x["name"] == d["name"] and x["version"] != d["version"]
+      end
+    end
+    Puppet.notice("#{msg}")
+    ($curr_drift += msg.to_s) unless($curr_drift.include? msg.to_s)
+  end
+
+  return drift
 end
 
 ##
