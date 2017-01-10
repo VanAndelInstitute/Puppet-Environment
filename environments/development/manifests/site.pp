@@ -26,6 +26,7 @@
 
 node matt {
   include research_centos
+  include pymol_module
 }
 node testmatt {
   include research_centos
@@ -44,11 +45,18 @@ node foreman {
   include server
 }
 node /^cryo-em_linux\d+$/ {
-  include research_centos
+  include cryoem
+  include pymol_module
 }
 node cryo-em-linux02 {
-  include research_centos
+  include cryoem
+  include pymol_module
 }
 node cryo-em-linux03 {
-  include research_centos
+  include cryoem
+  include pymol_module
+}
+node gongpuvictory {
+  include cryoem
+  include pymol_module
 }

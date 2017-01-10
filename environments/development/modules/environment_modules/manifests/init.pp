@@ -30,216 +30,101 @@ class environment_modules {
 		path => $global_bash,
 		line => '## Managed by Puppet.',
     }
+      
+    file { 'x_module_path':
+      path    => '/etc/profile.d/x_module_path.sh',
+      ensure  => 'present',
+      mode    => '0755',
+      content => 'export MODULEPATH=/primary/vari/software/modules/linuxworkstation:$MODULEPATH
+      ',
+    }
 
     file { 'add_relion':
-      path    => '/etc/profile.d/add_relion.sh',
+      path    => '/etc/profile.d/z_add_relion.sh',
       ensure  => present,
       mode    => '0755',
-      content => 'if ! cat ~/.bashrc | grep "/primary/vari/software/default/bin"; then
-        echo \'export PATH=$PATH:/primary/vari/software/relion/default/bin\' >> ~/.bashrc
-        fi
-
-        ',
+      content => 'export PATH=$PATH:/primary/vari/software/relion/default/bin
+      
+      ',
     }
 
     file { 'add_mpich':
-      path    => '/etc/profile.d/add_mpich.sh',
+      path    => '/etc/profile.d/z_add_mpich.sh',
       ensure  => present,
       mode    => '0755',
-      content => 'if ! cat ~/.bashrc | grep "module add mpich314"; then
-      echo "module add mpich314" >> ~/.bashrc
-fi
-
-        ',
+      content => "module add mpich314
+      
+      ",
     }
 
     file { 'add_cryoem':
-      path    => '/etc/profile.d/add_cryoem.sh',
+      path    => '/etc/profile.d/z_add_cryoem.sh',
       ensure  => present,
       mode    => '0755',
-      content => 'if ! cat ~/.bashrc | grep "module add cryoem"; then
-        echo "module add cryoem" >> ~/.bashrc
-        fi
-
-        ',
+      content => "module add cryoem
+      
+      ",
     }
     
     file { 'add_MPIHOME':
-      path    => '/etc/profile.d/add_mpihome.sh',
+      path    => '/etc/profile.d/z_add_mpihome.sh',
       ensure  => present,
       mode    => '0755',
-      content => 'if ! cat ~/.bashrc | grep "MPI_HOME=/usr/local"; then
-        echo \'export MPI_HOME=/usr/local\'
-        fi
-
-        ',
+      content => 'export MPI_HOME=/usr/local
+      
+      ',
     }
     file { 'add_MPIRUN':
-      path    => '/etc/profile.d/add_mpirun.sh',
+      path    => '/etc/profile.d/z_add_mpirun.sh',
       ensure  => present,
       mode    => '0755',
-      content => 'if ! cat ~/.bashrc | grep MPI_RUN=/usr/local/bin/mpirun; then
-        echo \'export MPI_RUN=/usr/local/bin/mpirun\'
-        fi
-
-        ',
+      content => 'export MPI_RUN=/usr/local/bin/mpirun
+      
+      ',
     }
     
     file { 'add_LIB':
-      path    => '/etc/profile.d/add_lib.sh',
+      path    => '/etc/profile.d/z_add_lib.sh',
       ensure  => present,
       mode    => '0755',
-      content => 'if ! cat ~/.bashrc | grep LD_LIBRARY; then
-        echo \'export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH\'
-        fi
-
-        ',
+      content => 'export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH,
+      
+      '
     }
     
     file { 'add_cuda':
-      path    => '/etc/profile.d/add_cuda.sh',
+      path    => '/etc/profile.d/z_add_cuda.sh',
       ensure  => present,
       mode    => '0755',
-      content => 'if ! cat ~/.bashrc | grep "module add cuda70"; then
-        echo "module add cuda70" >> ~/.bashrc
-        fi
-
-        ',
+      content => "module add cuda70
+      
+      ",
     }
 
     file { 'add_relionalias':
-      path    => '/etc/profile.d/add_relionalias.sh',
+      path    => '/etc/profile.d/z_add_relionalias.sh',
       ensure  => present,
       mode    => '0755',
-      content => 'if ! cat ~/.bashrc | grep relion2=/primary/vari/software; then
-        echo "alias relion2=/primary/vari/software/relion/relion2-beta/build/bin/relion" >> ~/.bashrc
-        fi
-
-        ',
+      content => "alias relion2=/primary/vari/software/relion/relion2-beta/build/bin/relion
+      
+      ",
     }
     
-    # Ensure that the needed modules exist
-    file { 'mpich314' :
-      path => '/usr/share/Modules/modulefiles/mpich314',
-      ensure => present,
-      content => '#%Module -*- tcl -*-
-##
-## dot modulefile
-##
-
-###
-#   Maintained by Puppet. Any modifications to this file will be reset
-#   on the next Puppet run.
-###
-
-proc ModulesHelp { } {
-  puts stderr "\tAdds mpich 3.1.4 Toolkit to your environment variables,"
-}
-
-module-whatis "adds mpich 3.1.4 to your environment variables"
-
-set               mpichversion         3.1.4
-set               root                /primary/vari/software/mpich/$mpichversion
-setenv            MPI_HOME            $root
-setenv            MPI_RUN            $root/bin/mpirun
-prepend-path      PATH                $root/bin
-prepend-path      LD_RUN_PATH         $root/lib
-prepend-path      LD_LIBRARY_PATH        $root/lib
-prepend-path      MANPATH             $root/share/man
-',
-  }
-
-    file { 'cryoem' :
-      path => '/usr/share/Modules/modulefiles/cryoem',
-      ensure => present,
-      content => '#%Module -*- tcl -*-
-##
-## modulefile
-##
-
-###
-#   Maintained by Puppet. Any modifications to this file will be reset
-#   on the next Puppet run.
-###
-
-proc ModulesHelp { } {
-
-  puts stderr "\tadds selected cryoem tools to your path\n"
-}
-
-module-whatis "some common cryoem tools"
-
-set              version           1.0
-set              root              /primary/vari/software
-set-alias       relion2         /primary/vari/software/relion/relion2-beta/build/bin/relion
-prepend-path      PATH              $root/relion/default/bin
-system  /primary/vari/software/IMOD/default/add_IMOD_to_bashrc.pl
-system  /primary/vari/software/eman2/default/add_eman2_to_bashrc.pl
-',
-  }
-
-    file { 'cuda70' :
-      path => '/usr/share/Modules/modulefiles/cuda70',
-      ensure => present,
-      content => '#%Module -*- tcl -*-
-##
-## dot modulefile
-##
-
-###
-#   Maintained by Puppet. Any modifications to this file will be reset
-#   on the next Puppet run.
-###
-
-proc ModulesHelp { } { 
-  puts stderr "\tAdds NVIDIA CUDA 7.0 Toolkit to your environment variables,"
-}
-
-module-whatis "adds NVIDIA CUDA 7.0 Toolkit to your environment variables"
-
-set               cudaversion         7.0.28
-set               root                /cm/shared/apps/cuda70/toolkit/$cudaversion
-setenv            CUDA_INSTALL_PATH   $root
-setenv            CUDA_PATH           $root
-setenv            CUDA_ROOT           /cm/local/apps/cuda/libs/current
-setenv            CUDA_SDK            /cm/shared/apps/cuda70/sdk/$cudaversion
-prepend-path      PATH                $root/bin
-prepend-path      PATH                /cm/shared/apps/cuda70/sdk/$cudaversion/bin/x86_64/linux/release
-prepend-path      LD_RUN_PATH         $root/lib
-prepend-path      LIBRARY_PATH        $root/lib64
-prepend-path      LD_LIBRARY_PATH     $root/lib64
-prepend-path      CUDA_INC_PATH       $root
-prepend-path      MANPATH                   /cm/local/apps/cuda/libs/current/share/man
-
-# CUDA LIBARIES
-prepend-path      INCLUDEPATH         $root/include
-prepend-path      PATH                /cm/local/apps/cuda/libs/current/bin
-prepend-path      LIBRARY_PATH        /cm/local/apps/cuda/libs/current/lib64
-prepend-path      LD_RUN_PATH         /cm/local/apps/cuda/libs/current/lib64
-prepend-path      LD_LIBRARY_PATH     /cm/local/apps/cuda/libs/current/lib64
-
-# PYNVML
-prepend-path      PYTHONPATH          /cm/local/apps/cuda/libs/current/pynvml
-
-# CUDA SDK for CUDPP CUTIL
-prepend-path      INCLUDEPATH         /cm/shared/apps/cuda70/sdk/$cudaversion/common/inc
-
-# OpenCL
-prepend-path      INCLUDEPATH         /cm/shared/apps/cuda70/toolkit/$cudaversion/include/CL
-prepend-path      CPATH               /cm/shared/apps/cuda70/toolkit/$cudaversion/include
-
-# OpenCL  SDK for CLUTIL
-prepend-path      CPATH               /cm/shared/apps/cuda70/sdk/$cudaversion/common/inc
-
-# CUPTI
-prepend-path      INCLUDEPATH         $root/extras/CUPTI/include
-prepend-path      LD_LIBRARY_PATH     $root/extras/CUPTI/lib64
-
-# Debugger
-prepend-path      INCLUDEPATH         $root/extras/Debugger/include
-
-# Disable CUDA cache
-
-',
-  }
+    file { 'mod_fix':
+      path    => '/etc/profile.d/mod_fix.sh',
+      ensure  => present,
+      mode    => '0755',
+      content => "source /etc/profile.d/modules.sh
+      
+      ",
+    }
+    
+    file { 'eman2':
+      path    => '/etc/profile.d/eman2.sh',
+      ensure  => present,
+      mode    => '0755',
+      content => "source /opt/EMAN2/eman2.bashrc
+      
+      ",
+    }
 }
