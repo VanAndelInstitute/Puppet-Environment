@@ -10,6 +10,10 @@ class environment_modules {
     package { 'libgfortran' :
       ensure => present,
     }
+    
+    package { 'libgnomecanvas' :
+      ensure => present,
+    }
   
     # create the /cm/share/apps location
     file { '/cm' :
@@ -119,12 +123,41 @@ class environment_modules {
       ",
     }
     
-    file { 'eman2':
-      path    => '/etc/profile.d/eman2.sh',
-      ensure  => present,
-      mode    => '0755',
-      content => "source /opt/EMAN2/eman2.bashrc
+    if ($::fqdn =~ /[Cc]ryo/ or $::fqdn =~ /[Gg]ongpu/){
+      file { 'spiderweb':
+        path    => '/etc/profile.d/spider.sh',
+        ensure  => present,
+        mode    => '0755',
+        content => 'export SPIDER_DIR="/opt/spider"
+        export SPBIN_DIR="$SPIDER_DIR/bin/"
+        export SPMAN_DIR="$SPIDER_DIR/man/"
+        export SPPROC_DIR="$SPIDER_DIR/proc/"
+        export PATH="${SPIDER_DIR}/bin:${PATH}"
+       ',
+      }
+      file { 'eman2':
+        path    => '/etc/profile.d/eman2.sh',
+        ensure  => present,
+        mode    => '0755',
+       content => "source /opt/EMAN2/eman2.bashrc
       
-      ",
+        ",
+      }
+      file { 'phenix':
+        path    => '/etc/profile.d/phenix.sh',
+        ensure  => present,
+        mode    => '0755',
+       content => "source /usr/local/phenix-1.11.1-2575/phenix_env.sh
+      
+        ",
+      }
+      file { 'coot':
+        path    => '/etc/profile.d/coot.sh',
+        ensure  => present,
+        mode    => '0755',
+       content => 'export PATH=/opt/coot-Linux-x86_64-rhel-6-gtk2-python/bin:$PATH
+      
+        ',
+      }
     }
 }
