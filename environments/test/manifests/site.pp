@@ -27,47 +27,13 @@ node default {
   include sssd
   include sshd
 }
-
-node testmatt {
-	include common
-	include mount_drives
-	include sssd
-}
-node localhost.localdomain {
-	include common
-	include mount_drives
-	include sssd
-}
-node puppetSSSDtest {
-	include common
-	include mount_drives
-	include sssd
-}
-node gongpuvictory {
-	include common
-	include mount_drives
-	include sssd
-	include sshd
-}
 node foreman {
 	include common
 	include mount_drives
 	include sssd
 	include sshd
 }
-node lens1 {
-	include common
-	include mount_drives
-	include sssd
-	include sshd
-}
-node lens2 {
-	include common
-	include mount_drives
-	include sssd
-	include sshd
-}
-node lens3 {
+node /lens\d+/ {
 	include common
 	include mount_drives
 	include sssd

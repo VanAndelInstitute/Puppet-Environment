@@ -15,7 +15,7 @@ def joined (os)
   when "darwin"
     return ((`dsconfigad -show | awk '/Active Directory Domain/{print $NF}'`).include? "vai")
   when "redhat","centos"
-    return ((`net ads info`).include? "vai")
+    return (!(`systemctl status sssd`).include? "inactive")
   else
     puts "Error in AD join. #{os} not currently supported through Puppet."
     return true
@@ -30,7 +30,7 @@ end
 def adjoin (os)
   return if joined(os)
   fqdn = Facter.value(:fqdn)
-
+  puts "Joining #{fqdn} to the domain"
   # Join the machine, command depends on OS 
   case os
   when "darwin"

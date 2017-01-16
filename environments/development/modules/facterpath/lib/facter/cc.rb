@@ -115,7 +115,7 @@ def drift_found(current, saved)
         msg = x["name"] + " " + x["version"] + " should be " + d["name"] + " " + d["version"] if x["name"] == d["name"] and x["version"] != d["version"]
       end
     end
-    Puppet.notice("#{msg}")
+    Puppet.notice("#{msg}") unless msg.to_s.empty?
     ($curr_drift += msg.to_s) unless($curr_drift.include? msg.to_s)
   end
 

@@ -15,6 +15,10 @@ class environment_modules {
       ensure => present,
     }
   
+    package { 'libpng12' :
+      ensure => present,
+    }
+
     # create the /cm/share/apps location
     file { '/cm' :
       ensure => 'directory',

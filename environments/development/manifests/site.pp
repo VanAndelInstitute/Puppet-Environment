@@ -24,6 +24,12 @@
 # Research machines include /primary/vari/software mounts 
 # as well as environment modules. Standard machines do not.
 
+node default {
+  if ($::operatingsystem == 'centos'){
+    include std_centos
+  }
+}
+
 node matt {
   include research_centos
   include pymol_module
@@ -44,19 +50,17 @@ node foreman {
   include std_centos
   include server
 }
-node /^cryo-em_linux\d+$/ {
-  include cryoem
-  include pymol_module
+node /bio\d+/ {
+  include research_centos
 }
-node cryo-em-linux02 {
-  include cryoem
-  include pymol_module
-}
-node cryo-em-linux03 {
+node /cryo[-_]em[_-]linux\d+/ {
   include cryoem
   include pymol_module
 }
 node gongpuvictory {
   include cryoem
   include pymol_module
+}
+node one {
+  include std_centos
 }

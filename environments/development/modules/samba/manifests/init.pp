@@ -1,4 +1,8 @@
 class samba {
+        package { 'samba' :
+          ensure => present,
+        }
+
 		file { '/etc/samba/smb.conf' :
 			ensure => present,
 			content	=>

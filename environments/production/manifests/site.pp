@@ -24,25 +24,3 @@
 node default {
 	include common  
 }
-
-node /^lens\d+$/ {
-	include common
-}
-
-node /^huilin\d+$/ {
-	include common
-	include mount_drives
-	include nslcd
-}
-
-node foreman.vai.org {
-	include common
-	include server
-	include mount_drives
-}
-
-node gongpuvictory.vai.org {
-	include common
-	include mount_drives
-	include nslcd
-}
