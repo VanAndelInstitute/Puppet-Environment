@@ -15,7 +15,7 @@ def joined (os)
   when "darwin"
     return ((`dsconfigad -show | awk '/Active Directory Domain/{print $NF}'`).include? "vai")
   when "redhat","centos"
-    return (!(`systemctl status sssd`).include? "inactive")
+    return (!(`systemctl status sssd`).include? "failed")
   else
     puts "Error in AD join. #{os} not currently supported through Puppet."
     return true
