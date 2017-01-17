@@ -1,6 +1,3 @@
-#encoding: utf-8
-Dir.chdir(File.dirname(__FILE__))
-
 ##
 #   Ruby script used alongside Puppet to retrieve
 #   the initial configuration of a machine, store it
@@ -8,9 +5,9 @@ Dir.chdir(File.dirname(__FILE__))
 ##
 
 $time = Time.now.utc
-$os = Facter.value(:operatingsystem).downcase
-$fqdn = Facter.value(:fqdn).downcase
-$server = (JSON.parse(File.read("ad_join_info.json")))["server"]
+$os = Facter.value(:operatingsystem).downcase rescue "redhat"
+$fqdn = Facter.value(:fqdn).downcase rescue "No FQDN found"
+$server = "foreman.vai.org"
 $backup_occured = false
 
 ##
@@ -50,10 +47,11 @@ def setup()
 	  # delete the local file and attempt to restore another sum
 	  File.delete config_file, $drift
 	  (restore config_file) ? Puppet.notice("File found locally but not remotely. Restoring from cached copy.") : (backup config_file)
+	  return 'yes'
     end
 
     # retrieve the current config
-    current =  JSON.parse(currentConfig().gsub(/\t|\n/, ""))["packages"]
+    current =  JSON.parse($current.gsub(/\t|\n/, ""))["packages"]
 	
     # retrieve the saved config
     saved = Facter.value(:packages)
@@ -67,7 +65,8 @@ def setup()
     if current == saved
       # send a notice and return
       Puppet.notice ("No drift detected on #{$fqdn}. (#{$time})")
-    
+      return 'no'
+
     # otherwise drift may exist
     else
       if drift_found(current, saved)
@@ -76,14 +75,13 @@ def setup()
         prev_drift = Facter.value(:drift)
         msg = "Drift detected on #{$fqdn}. (#{$time})"
         (prev_drift == $curr_drift) ? Puppet.err(msg) : Puppet.info(msg)
+        return 'yes'
       else
         Puppet.notice ("No drift detected on #{$fqdn}. (#{$time})")
+        return 'no'
       end
     end
   end
-
-  File.open($drift, 'w') { |f| f.write("drift: \"#{$curr_drift}\"") }
-  File.open($back, 'w') { |f| f.write("backup_occured: \"#{$backup_occured}\"") }
 end
 
 ##
@@ -107,16 +105,11 @@ def drift_found(current, saved)
   # determine the type of drift for each difference
   difference.each do |d|
     drift = true
-    
-    # A previously installed package was not found in the current configuration
+
     if not c.to_s.include? (d["name"])
       msg = d["name"] + " not found on #{$fqdn}. (#{$time})"
-    
-    # A package was installed after the configuration was retrieved initially.
     elsif not s.to_s.include? (d["name"])
       msg = d["name"] + " " + d["version"] + " installed on #{$fqdn} after initial configuration. (#{$time})"
-
-    # The found package version differs from the saved package version.
     else 
       c.each do |x|
         msg = x["name"] + " " + x["version"] + " should be " + d["name"] + " " + d["version"] if x["name"] == d["name"] and x["version"] != d["version"]
@@ -186,7 +179,7 @@ def backup(file)
   backup_occured ? (Puppet.warning(msg) and $backup_occured = true) : (Puppet.info(msg) and $backup_occured = false)
 
   # capture and store the current config, both remotely and locally
-  File.open(file, 'w') { |f| f.write(currentConfig())}
+  File.open(file, 'w') { |f| f.write($current)}
   filebucket_request("local_backup", file: file)
   filebucket_request("remote_backup", file: file)
 
@@ -234,4 +227,20 @@ def restore(file)
   return restored
 end
 
-setup()
+$current = currentConfig()
+Facter.add(:drift_detected) do
+  setcode do
+
+  # setup() returns yes if drift is found
+  # and no otherwise
+  d = setup() rescue 'no'
+		
+  # create a fact to store the current system drift
+  # used in alert system
+  File.open($drift, 'w') { |f| f.write("drift: \"#{$curr_drift}\"") }
+  File.open($back, 'w') { |f| f.write("backup_occured: \"#{$backup_occured}\"") }
+	 	
+  # Return yes if drift was found, no otherwise	
+  "#{d}"
+  end
+end

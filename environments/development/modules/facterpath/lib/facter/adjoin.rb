@@ -1,8 +1,11 @@
-$domain         = "vaidc02.vai.org"
-$ad_admin       = "admMattH"
-$ad_admin_pass  = "Puppetisc00l"
-$host           = "vai.org"
-$test_user      = "matthew.hoffman"
+#encoding = utf-8
+Dir.chdir(File.dirname(__FILE__))
+
+info_hash = JSON.parse(File.read("ad_join_info.json"))
+$domain         = info_hash["domain"]
+$ad_admin       = info_hash["username"]
+$ad_admin_pass  = info_hash["password"]
+$host           = info_hash["host"]
 
 ##
 #   Test for AD Join, OS dependent
@@ -13,7 +16,7 @@ $test_user      = "matthew.hoffman"
 def joined (os)
   case os
   when "darwin"
-    return ((`dsconfigad -show | awk '/Active Directory Domain/{print $NF}'`).include? "vai")
+    return ((`dsconfigad -show | awk '/Active Directory Domain/{print $NF}'`).include? $host)
   when "redhat","centos"
     return (!(`systemctl status sssd`).include? "failed")
   else

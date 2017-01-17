@@ -21,6 +21,9 @@
 # will be included in every node's catalog, *in addition* to any classes
 # specified in the console for that node.
 
+
+
+
 # Research machines include /primary/vari/software mounts 
 # as well as environment modules. Standard machines do not.
 
@@ -29,16 +32,9 @@ node default {
     include std_centos
   }
 }
-
 node matt {
   include research_centos
   include pymol_module
-}
-node testmatt {
-  include research_centos
-}
-node puppetSSSDtest {
-  include std_centos
 }
 node vais-macbook-pro-3 {
   include std_mac
