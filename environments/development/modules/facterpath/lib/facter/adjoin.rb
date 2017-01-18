@@ -20,7 +20,7 @@ def joined (os)
   when "redhat","centos"
     return (!(`systemctl status sssd`).include? "failed")
   else
-    puts "Error in AD join. #{os} not currently supported through Puppet."
+    Puppet.notice("Error in AD join. #{os} not currently supported through Puppet.")
     return true
   end
 end
@@ -33,14 +33,12 @@ end
 def adjoin (os)
   return if joined(os)
   fqdn = Facter.value(:fqdn)
-  puts "Joining #{fqdn} to the domain"
-  # Join the machine, command depends on OS 
+  Puppet.notice("Joining #{fqdn} to the domain.")
+  
   case os
   when "darwin"
-    #Puppet.err("#{fqdn} was not joined to the AD. Joining now.")
     (`dsconfigad -add #{$host} -u #{$ad_admin} -p #{$ad_admin_pass} -domain #{$domain}`)
   when "redhat","centos"
-    #Puppet.err("#{fqdn} was not joined to the AD. Joining now.")
 	(`/usr/bin/net ads join -U #{$ad_admin}%#{$ad_admin_pass}`)
     (`/usr/sbin/authconfig --enablesssd --enablesssdauth --enablemkhomedir --updateall`)
   end

@@ -43,4 +43,9 @@ class mac {
 </dict>
 </plist>',
     }
+
+    package { 'firefox':
+      ensure   => present,
+      provider => 'homebrew',
+    }
 }
