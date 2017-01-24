@@ -7,49 +7,60 @@ class sssd {
 			mode 	=> '0600',
 			content	=>
 			'## This configuration file is managed by Puppet.
-## Any changes made to it will be reset on the next Puppet run.
+            ## Any changes made to it will be reset on the next Puppet run.
 
-[sssd]
-config_file_version = 2
-reconnection_retries = 3
-sbus_timeout = 30
-services = nss, pam, pac
-domains = LOCAL, VAI.ORG
+            [sssd]
+            config_file_version = 2
+            services = nss, pam, ssh, autofs
+            domains = VAI.ORG
 
-[pam]
-offline_credentials_expiration = 2
-offline_failed_login_attempts = 3
-offline_failed_login_delay = 5
+            [nss]
 
-[nss]
-filter_groups = root
-filter_users = root
-reconnection_retries = 3
-entry_cache_timeout = 300
-entry_cache_nowait_percentage = 75
-default_shell = /bin/bash
+            reconnection_retries = 3
+            entry_cache_timeout = 300
+            entry_cache_nowait_percentage = 75
 
-[pac]
+            [pam]
 
-[domain/LOCAL]
-description = LOCAL Users domain
-id_provider = local
-enumerate = true
+            [domain/vai.org]
 
-[domain/VAI.ORG]
-id_provider = ad
-auth_provider = ad
-chpass_provider =ad
-access_provider = ad
+            id_provider = ad
+            auth_provider = ad
+            access_provider = ad
+            chpass_provider = ad
 
-cache_credentials = true
+            entry_cache_timeout=16000
+            refresh_expired_interval=12000
 
-ldap_id_mapping = false
-ldap_referrals = false
+            default_shell = /bin/bash
 
-default_shell = /bin/bash
-override_homedir = /home/%u
-'
+            fallback_homedir = /home/%u
+
+            ldap_user_objectsid=objectSid
+            ldap_group_objectsid=objectSid
+
+            # to get user information (UID/GID) from the active directory
+            #ldap_user_object_class =  top
+            ldap_user_home_directory = unixHomeDirectory
+            #ldap_group_object_class = top
+            ldap_force_upper_case_realm = True
+            ldap_group_nesting_level=10
+            #ldap_group_member = member
+            #ldap_schema = ad
+            ldap_deref_threshold=10
+            ldap_id_mapping=true
+            #ldap_group_objectsid=objectSid
+            #ldap_idmap_autorid_compat=true
+            # allow getent to query the AD
+            enumerate = true
+            ldap_group_nesting_level=20
+            ldap_groups_use_matching_rule_in_chain=true
+            ldap_initgroups_use_matching_rule_in_chain=true
+            ad_enable_gc=false
+            ldap_enumeration_refresh_timeout=20
+            ldap_purge_cache_timeout=0
+
+            '
 		}
 
 		package { 'sssd' :

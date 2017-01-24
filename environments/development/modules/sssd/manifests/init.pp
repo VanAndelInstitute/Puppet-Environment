@@ -3,10 +3,10 @@ class sssd {
   include samba
 
   file { '/etc/sssd/sssd.conf' :
-	ensure => present,
-	mode 	=> '0600',
-	content	=>
-    	'## This configuration file is managed by Puppet.
+  ensure => present,
+  mode  => '0600',
+  content   =>
+      '## This configuration file is managed by Puppet.
 ## Any changes made to it will be reset on the next Puppet run.
 
 [sssd]
@@ -17,11 +17,13 @@ services = nss, pam, pac
 domains = LOCAL, VAI.ORG
 
 [pam]
+
 offline_credentials_expiration = 2
 offline_failed_login_attempts = 3
 offline_failed_login_delay = 5
 
 [nss]
+
 filter_groups = root
 filter_users = root
 reconnection_retries = 3
@@ -44,30 +46,34 @@ access_provider = ad
 
 cache_credentials = true
 
-ldap_id_mapping = false
-ldap_referrals = false
-
 default_shell = /bin/bash
 override_homedir = /home/%u
+
+ldap_schema = ad
+ldap_user_objectsid=objectSid
+ldap_group_objectsid=objectSid
+ldap_use_tokengroups = False
+override_space="_"
+
 '
   }
 
   package { 'sssd' :
     ensure => present,
   }
-		
+    
   exec { 'authconfig-sssd' :
-  	command 	=> '/usr/sbin/authconfig --enablesssd --enablesssdauth --disableldap --disableldapauth --enablemkhomedir --updateall', 
-	refreshonly => true,
+    command     => '/usr/sbin/authconfig --enablesssd --enablesssdauth --disableldap --disableldapauth --enablemkhomedir --updateall', 
+  refreshonly => true,
   }
-		
+    
   service { 'sssd' :
-  	ensure 		=> running,
-	enable 		=> true,
-	subscribe => Exec['authconfig-sssd'],
+    ensure      => running,
+  enable        => true,
+  subscribe => Exec['authconfig-sssd'],
   }
 
   service { 'crond' :
-	subscribe	=>	Service['sssd'],
+  subscribe =>  Service['sssd'],
   }
 }

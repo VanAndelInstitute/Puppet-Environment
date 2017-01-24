@@ -30,6 +30,8 @@
 node default {
   if ($::operatingsystem == 'centos'){
     include std_centos
+    #  class { 'sudo': }
+    #  class { 'privileges': }
   }
 }
 node matt {
