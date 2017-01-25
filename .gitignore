@@ -1,1 +1,2 @@
 /etc/puppetlabs/code/environments/development/modules/facterpath/lib/facter/ad_join_info.json
+/etc/puppetlabs/code/environments/development/modules/facterpath/lib/facter/munki_info.json

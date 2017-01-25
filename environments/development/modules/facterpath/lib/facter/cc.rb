@@ -1,4 +1,4 @@
-#encoding: utf-8
+# encoding: utf-8
 Dir.chdir(File.dirname(__FILE__))
 
 ##
