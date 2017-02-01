@@ -22,5 +22,8 @@
 # specified in the console for that node.
 
 node default {
-	include common  
+	include common
+    if ($::operatingsystem =~ /[Dd]arwin/){
+      include mac
+    }
 }

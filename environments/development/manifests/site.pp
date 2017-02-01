@@ -28,18 +28,16 @@
 # as well as environment modules. Standard machines do not.
 
 node default {
-  if ($::operatingsystem == 'centos'){
+  if ($::operatingsystem =~ /[Cc]entos|[Rr]edhat/){
     include std_centos
-    #  class { 'sudo': }
-    #  class { 'privileges': }
+  }
+  if ($::operatingsystem =~ /[Dd]arwin/){
+    include std_mac
   }
 }
 node matt {
   include research_centos
   include pymol_module
-}
-node vais-macbook-pro-3 {
-  include std_mac
 }
 node /^lens\d+$/ {
   include research_centos
@@ -58,7 +56,4 @@ node /cryo[-_]em[_-]linux\d+/ {
 node gongpuvictory {
   include cryoem
   include pymol_module
-}
-node one {
-  include std_centos
 }

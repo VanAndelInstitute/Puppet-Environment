@@ -22,10 +22,10 @@
 # specified in the console for that node.
 
 node default {
-  include common
-  include mount_drives
-  include sssd
-  include sshd
+
+  if($::operatingsystem =~ /[Dd]arwin/){
+    include mac
+  }
 }
 node foreman {
 	include common

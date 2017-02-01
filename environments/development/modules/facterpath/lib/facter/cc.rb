@@ -114,7 +114,7 @@ def drift_found(current, saved)
     
     # A package was installed after the configuration was retrieved initially.
     elsif not s.to_s.include? (d["name"])
-      msg = d["name"] + " " + d["version"] + " installed on #{$fqdn} after initial configuration. (#{$time})"
+      msg = d["name"] + " " + d["version"] + " installed on #{$fqdn} after configuration. (#{$time})"
 
     # The found package version differs from the saved package version.
     else 
