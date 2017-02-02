@@ -19,6 +19,8 @@ def joined (os)
     return ((`dsconfigad -show | awk '/Active Directory Domain/{print $NF}'`).include? $host)
   when "redhat","centos"
     return (!(`systemctl status sssd`).include? "failed")
+  when "windows"
+    return true
   else
     Puppet.notice("Error in AD join. #{os} not currently supported through Puppet.")
     return true

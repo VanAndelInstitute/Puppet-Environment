@@ -21,39 +21,9 @@
 # will be included in every node's catalog, *in addition* to any classes
 # specified in the console for that node.
 
-
-
-
-# Research machines include /primary/vari/software mounts 
-# as well as environment modules. Standard machines do not.
-
 node default {
-  if ($::operatingsystem =~ /[Cc]entos|[Rr]edhat/){
-    include std_centos
-  }
-  if ($::operatingsystem =~ /[Dd]arwin/){
-    include std_mac
-  }
-}
-node matt {
-  include research_centos
-  include pymol_module
-}
-node /^lens\d+$/ {
-  include research_centos
-}
-node foreman {
-  include std_centos
-  include server
-}
-node /bio\d+/ {
-  include research_centos
-}
-node /cryo[-_]em[_-]linux\d+/ {
-  include cryoem
-  include pymol_module
-}
-node gongpuvictory {
-  include cryoem
-  include pymol_module
+	include common
+    if ($::operatingsystem =~ /[Dd]arwin/){
+      include mac
+    }
 }
