@@ -163,5 +163,13 @@ class environment_modules {
       
         ',
       }
+      file { 'chimera':
+        path    => '/etc/profile.d/chimera.sh',
+        ensure  => present,
+        mode    => '0755',
+       content => 'export PATH=/primary/vari/software/chimera/default/bin:$PATH
+      
+        ',
+      }
     }
 }

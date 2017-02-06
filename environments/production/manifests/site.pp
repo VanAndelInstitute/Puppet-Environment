@@ -11,13 +11,18 @@
 # Research machines include /primary/vari/software mounts 
 # as well as environment modules. Standard machines do not.
 
-node default {
+# The cryoEM module includes the research_centos module.
 
+node default {
   case $facts['os']['name'] {
     /[Rr]ed[Hh]at|[Cc]ent[OS|os]/:  {include std_centos }
     /[Dd]arwin/:                    {include std_mac    }
     default:                        {include common     }
   }
+}
+
+node /^test\d+$/ {
+  include cryoem
 }
 
 node matt {
@@ -45,4 +50,9 @@ node /cryo[-_]em[_-]linux\d+/ {
 node gongpuvictory {
   include cryoem
   include pymol_module
+}
+
+node munki {
+  include std_centos
+  include mount_drives
 }

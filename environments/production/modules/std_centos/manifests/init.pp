@@ -4,5 +4,6 @@ class std_centos {
     include sssd
     include graylog
     include privileges
+    include dummy_login
   }
 }
