@@ -1,4 +1,4 @@
-class server {
+class centos_server {
     include std_centos
 
     if ($::fqdn == 'foreman.vai.org'){

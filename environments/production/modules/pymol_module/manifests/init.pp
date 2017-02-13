@@ -1,42 +1,10 @@
 class pymol_module {
-   
-    package { 'freeglut-devel' :
-      ensure => present,
-    }
     
-    package { 'glew-devel' :
-      ensure => present,
-    }
-    
-    package { 'libpng-devel' :
-      ensure => present,
-    }
+  $packages = ['freeglut-devel', 'glew-devel', 'libpng-devel', 'numpy', 'freetype-devel', 'tkinter', 'libxslt-devel', 'libxml2-devel', 'python-pmw', 'gcc-c++',]
 
-    package { 'numpy' :
-      ensure => present,
+  $packages.each |$pack| {
+    package { "$pack":
+      ensure => 'present',
     }
-
-    package { 'freetype-devel' :
-      ensure => present,
-    }
-
-    package { 'tkinter' :
-      ensure => present,
-    }
-
-    package { 'libxslt-devel' :
-      ensure => present,
-    }
-
-    package { 'libxml2-devel' :
-      ensure => present,
-    }
-
-    package { 'python-pmw' :
-      ensure => present,
-    }
-
-    package { 'gcc-c++' :
-      ensure => present,
-    }
+  }
 }

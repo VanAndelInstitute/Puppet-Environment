@@ -6,6 +6,7 @@ class mount_drives {
 	file { '/primary/vari/' :
 		ensure => directory,
 	}
+
 	file { '/primary/vari/software/' :
 		ensure => directory,
 	}

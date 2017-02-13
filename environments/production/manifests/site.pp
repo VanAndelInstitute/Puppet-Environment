@@ -17,6 +17,7 @@ node default {
   case $facts['os']['name'] {
     /[Rr]ed[Hh]at|[Cc]ent[OS|os]/:  {include std_centos }
     /[Dd]arwin/:                    {include std_mac    }
+    /[Ww]indows/:                   {include std_windows}
     default:                        {include common     }
   }
 }
@@ -30,24 +31,17 @@ node matt {
   include pymol_module
 }
 
+# Matches all of the lens machines for Huilin's team
 node /^lens\d+$/ {
   include research_centos
 }
 
 node foreman {
-  include server
+  include centos_server
 }
 
-node /bio\d+/ {
-  include research_centos
-}
-
-node /cryo[-_]em[_-]linux\d+/ {
-  include cryoem
-  include pymol_module
-}
-
-node gongpuvictory {
+# matches all of the cryoEM machines
+node /cryo[-_]em[_-]linux\d+/, gongpuvictory {
   include cryoem
   include pymol_module
 }

@@ -31,8 +31,8 @@ def setup()
   # if the file does not exist
   unless File.exist? config_file
     # backup the current config as the new standard if a cached sum does not exist
-    backup config_file unless restore config_file	
-	
+    backup config_file unless restore config_file   
+  
   # a configuration file exists, check for inconsistency
   else
 
@@ -41,23 +41,23 @@ def setup()
 
     # attempt to retrieve that sum from the server
     response = filebucket_request("get", sum: sum)
-		
+    
     # if the sum is not returned, it did not exist
     if(response.nil? || response.empty?)
-	  # delete the local file and attempt to restore another sum
-	  File.delete config_file, $drift
-	  (restore config_file) ? Puppet.notice("File found locally but not remotely. Restoring from cached copy.") : (backup config_file)
-	  return 'yes'
+    # delete the local file and attempt to restore another sum
+    File.delete config_file, $drift
+    (restore config_file) ? Puppet.notice("File found locally but not remotely. Restoring from cached copy.") : (backup config_file)
+    return 'yes'
     end
 
     # retrieve the current config
     current =  JSON.parse($current.gsub(/\t|\n/, ""))["packages"]
-	
+  
     # retrieve the saved config
     saved = Facter.value(:packages)
     prev_drift = Facter.value(:drift) 
     drift = false
-   	
+    
     # used to capture the current drift of the system
     $curr_drift = ""
     
@@ -123,10 +123,10 @@ def drift_found(current, saved)
 end
 
 ##
-#	Function that retrieves the current state of the
-#	the system and returns it as a string.
+#   Function that retrieves the current state of the
+#   the system and returns it as a string.
 #
-#	@return str: the current configuration of the machine
+#   @return str: the current configuration of the machine
 ##
 def currentConfig()
   # retrieve the current configuration
@@ -143,9 +143,9 @@ def currentConfig()
   # cycle through the found packages
   packages.each do |pack|
     next if pack.nil? #|| pack.empty?
-	name = ($os == 'darwin') ? (pack.to_s.match(/.*:/).to_s).gsub(/:/, "").strip : ((pack.match(/\'.*\':/)).to_s).gsub(/\'|:/, "")
-	version = ($os == 'darwin') ? (pack.to_s.match(/Version:.*/).to_s).gsub(/Version:/, "").strip : ((pack.match(/\'.*\',/)).to_s).gsub(/\'|,/, "")
-	output += "\t{\"name\":\"#{name}\", \"version\":\"#{version}\"},\n"
+  name = ($os == 'darwin') ? (pack.to_s.match(/.*:/).to_s).gsub(/:/, "").strip : ((pack.match(/\'.*\':/)).to_s).gsub(/\'|:/, "")
+  version = ($os == 'darwin') ? (pack.to_s.match(/Version:.*/).to_s).gsub(/Version:/, "").strip : ((pack.match(/\'.*\',/)).to_s).gsub(/\'|,/, "")
+  output += "\t{\"name\":\"#{name}\", \"version\":\"#{version}\"},\n"
   end
  
   output.chomp!(",\n")
@@ -174,7 +174,7 @@ end
 def backup(file)
   backup_occured = Facter.value(:backup_occured) rescue false
   msg = "No previous sum found locally or remotely on #{$fqdn}. Capturing fresh configuration."
-	
+  
   # send a warning
   backup_occured ? (Puppet.warning(msg) and $backup_occured = true) : (Puppet.info(msg) and $backup_occured = false)
 
@@ -197,29 +197,29 @@ def restore(file)
   # check the local system for a cached sum
   list = filebucket_request("list")
   restored = false
-	
+  
   # if a sum is found locally
   unless list.nil? || list.empty?
     cached_files = list.split("\n")
-	
+  
     # search for the newest sum
     cached_files.reverse_each do |line|
       next if !(line.include? file) || restored
       
       # check to see if the sum exists on the server as well
-      sum = line.split(" ")[0]		
+      sum = line.split(" ")[0]      
       response = filebucket_request("get", sum: sum)
       
       # if the sum exists AND the file has not yet been restored
       unless response.nil? || response.empty? || restored
-					
+          
         # restore the file from the server and acknowledge
         restored = true
         filebucket_request("restore", file: file, sum: sum)
         Puppet.notice("Restored #{file} from #{$server} (#{sum})")
-      end	
+      end   
     end
-	
+  
   # no local sum found, backup and send new config
   else
     backup file 
@@ -234,13 +234,13 @@ Facter.add(:drift_detected) do
   # setup() returns yes if drift is found
   # and no otherwise
   d = setup() rescue 'no'
-		
+    
   # create a fact to store the current system drift
   # used in alert system
   File.open($drift, 'w') { |f| f.write("drift: \"#{$curr_drift}\"") }
   File.open($back, 'w') { |f| f.write("backup_occured: \"#{$backup_occured}\"") }
-	 	
-  # Return yes if drift was found, no otherwise	
+    
+  # Return yes if drift was found, no otherwise 
   "#{d}"
   end
 end

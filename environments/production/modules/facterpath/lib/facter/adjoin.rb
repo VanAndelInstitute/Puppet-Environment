@@ -1,7 +1,6 @@
 #encoding = utf-8
-Dir.chdir(File.dirname(__FILE__))
-
-info_hash = JSON.parse(File.read("ad_join_info.json"))
+join_info = Dir.chdir(File.dirname(__FILE__)){File.read("ad_join_info.json")}
+info_hash = JSON.parse(join_info)
 $domain         = info_hash["domain"]
 $ad_admin       = info_hash["username"]
 $ad_admin_pass  = info_hash["password"]
@@ -15,16 +14,14 @@ $host           = info_hash["host"]
 ##
 def joined (os)
   case os
-  when "darwin"
-    return ((`dsconfigad -show | awk '/Active Directory Domain/{print $NF}'`).include? $host)
-  when "redhat","centos"
-    return (!(`systemctl status sssd`).include? "failed")
-  when "windows"
-    return true
-  else
-    Puppet.notice("Error in AD join. #{os} not currently supported through Puppet.")
-    return true
+  when "darwin" then return ((`dsconfigad -show | awk '/Active Directory Domain/{print $NF}'`).include? $host)
+  when "redhat","centos" then return (!(`systemctl status sssd`).include? "failed")
+  when "windows" then return true
+  else  Puppet.notice("Error in AD join. #{os} not currently supported through Puppet.")
   end
+  
+  # short circuit the adjoin if the os is not supported
+  return true
 end
 
 ##
@@ -38,7 +35,7 @@ def adjoin (os)
   Puppet.notice("Joining #{fqdn} to the domain.")
   
   case os
-  when "darwin"
+  when "darwin" 
     (`dsconfigad -add #{$host} -u #{$ad_admin} -p #{$ad_admin_pass} -domain #{$domain}`)
   when "redhat","centos"
 	(`/usr/bin/net ads join -U #{$ad_admin}%#{$ad_admin_pass}`)

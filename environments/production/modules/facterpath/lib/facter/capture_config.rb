@@ -1,5 +1,7 @@
 # encoding: utf-8
-Dir.chdir(File.dirname(__FILE__))
+require_relative 'lib/filebucket_request'
+require_relative 'lib/silence_output'
+require_relative 'lib/facter_call'
 
 ##
 #   Ruby script used alongside Puppet to retrieve
@@ -7,41 +9,12 @@ Dir.chdir(File.dirname(__FILE__))
 #   and use it as a baseline for configuration drift.
 ##
 
-##
-#   Silence the output of input commands
-#   to reduce warning and error noise
-#   produced by outside tools.
-##
-def silence_output 
-  begin
-    orig_stderr = $stderr.clone
-    orig_stdout = $stdout.clone
-    $stderr.reopen File.new('/dev/null', 'w')
-    $stdout.reopen File.new('/dev/null', 'w')
-    retval = yield
-  rescue Exception => e
-    $stdout.reopen orig_stdout
-    $stderr.reopen orig_stderr
-    raise e
-  ensure
-    $stdout.reopen orig_stdout
-    $stderr.reopen orig_stderr
-  end
-  retval
-end
-
-##
-#   Sanitize the Facter.value call
-##
-def facter_call(val)
-  return silence_output{Facter.value(val.to_sym)}
-end
-
-$time = Time.now.utc
+join_info = Dir.chdir(File.dirname(__FILE__)){File.read("ad_join_info.json")}
+$server = (JSON.parse(join_info))["server"]
 $os = facter_call(:operatingsystem).downcase
 $fqdn = facter_call(:fqdn).downcase
-$server = (JSON.parse(File.read("ad_join_info.json")))["server"]
 $backup_occured = false
+$time = Time.now.utc
 
 ##
 #   Function that searchs for, and alerts of,
@@ -61,7 +34,7 @@ def setup()
   $drift = "#{filepath}#{$fqdn}_drift.yaml"
   $back = "#{filepath}#{$fqdn}_back.yaml"
 
-  # if the file does not exist
+  # if the config file does not exist
   unless File.exist? config_file
     # backup the current config as the new standard if a cached sum does not exist
     backup config_file unless restore config_file	
@@ -73,7 +46,7 @@ def setup()
     sum = Digest::MD5.file config_file
 
     # attempt to retrieve that sum from the server
-    response = filebucket_request("get", sum: sum)
+    response = filebucket_request(:get, sum: sum)
 		
     # if the sum is not returned, it did not exist
     if(response.nil? || response.empty?)
@@ -84,11 +57,10 @@ def setup()
 
     # retrieve the current config
     current =  JSON.parse(currentConfig().gsub(/\t|\n/, ""))["packages"]
-	
+    
     # retrieve the saved config
-    saved = facter_call(:packages)
+    saved = facter_call(:packages) 
     prev_drift = facter_call(:drift) 
-    drift = false
    	
     # used to capture the current drift of the system
     $curr_drift = ""
@@ -105,7 +77,7 @@ def setup()
         # send an error alert (goes to email)
         prev_drift = facter_call(:drift)
         msg = "Drift detected on #{$fqdn}. (#{$time})"
-        (prev_drift == $curr_drift) ? Puppet.err(msg) : Puppet.info(msg)
+        (prev_drift == $curr_drift) ? Puppet.error(msg) : Puppet.info(msg)
       else
         Puppet.notice ("No drift detected on #{$fqdn}. (#{$time})")
       end
@@ -163,43 +135,29 @@ end
 #	Function that retrieves the current state of the
 #	the system and returns it as a string.
 #
-#	@return str: the current configuration of the machine
+#	@return str: the current configuration of the machine as a JSON object
 ##
 def currentConfig()
+
   # retrieve the current configuration
   packages = ($os != 'darwin') ? (`puppet resource package`).split(/\n/).each_slice(3).map { |slice| slice.join("\n") } : []
   (`system_profiler SPApplicationsDataType`).scan(/(.)+:(\s)+Version:(.)+/) { packages << $~ } if ($os == 'darwin')
 
-  ip = facter_call(:ipaddress)     rescue "NO IP FOUND"
-  mac = facter_call(:macaddress)   rescue "NO MAC FOUND"
+  ip = facter_call(:ipaddress)      || "NO IP FOUND"
+  mac = facter_call(:macaddress)    || "NO MAC FOUND"
 
-  output = "{\"packages\": [\n"
-  output += "\t{\"name\":\"ip\", \"version\":\"#{ip}\"},\n"
-  output += "\t{\"name\":\"mac\", \"version\":\"#{mac}\"},\n"
+  json_array = [] # store packages as hashes for conversion to JSON
 
   # cycle through the found packages
   packages.each do |pack|
-    next if pack.nil? #|| pack.empty?
+    next if pack.nil? || pack.empty?
 	name = ($os == 'darwin') ? (pack.to_s.match(/.*:/).to_s).gsub(/:/, "").strip : ((pack.match(/\'.*\':/)).to_s).gsub(/\'|:/, "")
 	version = ($os == 'darwin') ? (pack.to_s.match(/Version:.*/).to_s).gsub(/Version:/, "").strip : ((pack.match(/\'.*\',/)).to_s).gsub(/\'|,/, "")
-	output += "\t{\"name\":\"#{name}\", \"version\":\"#{version}\"},\n"
+    json_array.push({ "name" => name, "version" => version })
   end
- 
-  output.chomp!(",\n")
-  output += "\n]}\n"
-  # return the list of all currently installed packages
-  return output 
-end
-
-##
-# Function that runs a filebucket request and returns the result.
-##
-def filebucket_request (type, file: "", sum: "")
-  return silence_output {(`puppet filebucket get #{sum} --server #{$server}`)}               if type == "get"
-  return silence_output {(`puppet filebucket restore #{file} #{sum} --server #{$server}`)}   if type == "restore"
-  return silence_output {(`puppet filebucket backup #{file} -l`)}                            if type == "local_backup" 
-  return silence_output {(`puppet filebucket backup #{file} --server #{$server}`)}           if type == "remote_backup"
-  return silence_output {(`puppet filebucket -l list`)}                                      if type == "list"
+  
+  # return the list of all currently installed packages as a JSON object
+  return JSON.generate({:packages => json_array})
 end
 
 ##
@@ -209,6 +167,7 @@ end
 #   @param file: filepath to backup
 ##
 def backup(file)
+
   backup_occured = facter_call(:backup_occured) rescue false
   msg = "No previous sum found locally or remotely on #{$fqdn}. Capturing fresh configuration."
 	
@@ -216,9 +175,11 @@ def backup(file)
   backup_occured ? (Puppet.warning(msg) and $backup_occured = true) : (Puppet.info(msg) and $backup_occured = false)
 
   # capture and store the current config, both remotely and locally
-  File.open(file, 'w') { |f| f.write(currentConfig())}
-  filebucket_request("local_backup", file: file)
-  filebucket_request("remote_backup", file: file)
+  c = currentConfig()
+  File.open(file, 'w') { |f| f.write(c)}
+
+  filebucket_request(:local_backup, file: file)
+  filebucket_request(:remote_backup, file: file)
 
   $backup_occured = false
 end
@@ -231,37 +192,38 @@ end
 #   @return restored: returns true if restored successfully, false otherwise
 ##
 def restore(file)
-# check the local system for a cached sum
-list = filebucket_request("list")
-restored = false
+
+  # check the local system for a cached sum
+  list = filebucket_request(:list)
+  restored = false
   
-# if a sum is found locally
-unless list.nil? || list.empty?
-  cached_files = list.split("\n")
+  # if a sum is found locally
+  unless list.nil? || list.empty?
+    cached_files = list.split("\n")
   
-  # search for the newest sum
-  cached_files.reverse_each do |line|
-    next if !(line.include? file) || restored
+    # search for the newest sum
+    cached_files.reverse_each do |line|
+      next if !(line.include? file) || restored
     
-    # check to see if the sum exists on the server as well
-    sum = line.split(" ")[0]		
-    response = filebucket_request("get", sum: sum)
+      # check to see if the sum exists on the server as well
+      sum = line.split(" ")[0]		
+      response = filebucket_request(:get, sum: sum)
     
-    # if the sum exists AND the file has not yet been restored
-    unless response.nil? || response.empty? || restored
+      # if the sum exists AND the file has not yet been restored
+      unless response.nil? || response.empty? || restored
                   
-      # restore the file from the server and acknowledge
-      restored = true
-      filebucket_request("restore", file: file, sum: sum)
-      Puppet.notice("Restored #{file} from #{$server} (#{sum})")
-    end	
-  end
+        # restore the file from the server and acknowledge
+        restored = true
+        filebucket_request(:restore, file: file, sum: sum)
+        Puppet.notice("Restored #{file} from #{$server} (#{sum})")
+      end	
+    end
   
-# no local sum found, backup and send new config
-else
-  backup file 
-end
-return restored
+  # no local sum found, backup and send new config
+  else
+    backup file 
+  end
+  return restored
 end
 
 setup()

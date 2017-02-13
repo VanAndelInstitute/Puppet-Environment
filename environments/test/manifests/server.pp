@@ -13,3 +13,16 @@ class server {
       }   
     }  
 }
+
+
+
+package { 'firefox' :
+  ensure => present,
+}
+
+
+
+
+
+
+
