@@ -47,6 +47,7 @@ class environment_modules {
     ',
   }
 
+  if (!($::fqdn =~ "lens5")){
   file { 'add_mpich':
     path    => '/etc/profile.d/z_add_mpich.sh',
     ensure  => present,
@@ -63,6 +64,16 @@ class environment_modules {
     content => "module add cryoem
     
     ",
+  }
+  
+  file { 'add_cuda':
+    path    => '/etc/profile.d/z_add_cuda.sh',
+    ensure  => present,
+    mode    => '0755',
+    content => "module add cuda70
+    
+    ",
+  }
   }
   
   file { 'add_MPIHOME':
@@ -91,15 +102,6 @@ class environment_modules {
     '
   }
   
-  file { 'add_cuda':
-    path    => '/etc/profile.d/z_add_cuda.sh',
-    ensure  => present,
-    mode    => '0755',
-    content => "module add cuda70
-    
-    ",
-  }
-
   file { 'add_relionalias':
     path    => '/etc/profile.d/z_add_relionalias.sh',
     ensure  => present,

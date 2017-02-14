@@ -1,6 +1,5 @@
 # encoding: utf-8
 require_relative 'lib/filebucket_request'
-require_relative 'lib/silence_output'
 require_relative 'lib/facter_call'
 
 ##
@@ -62,7 +61,7 @@ def setup()
       msg = "Drift detected on #{$fqdn}. (#{$time})"
       
       # send an error only if found drift differs from prev drift
-      (prev_drift.gsub(/\s/,"") == $curr_drift.gsub(/\s/, "")) ? Puppet.notice(msg) : Puppet.err(msg) 
+      (prev_drift.gsub(/\s/,"") == $curr_drift.gsub(/\s/, "")) ? Puppet.notice(msg) : Puppet.warning(msg) 
     end
   end
 
