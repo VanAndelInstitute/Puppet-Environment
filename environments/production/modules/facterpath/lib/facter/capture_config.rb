@@ -120,10 +120,9 @@ def currentConfig()
   mac = facter_call(:macaddress)    || "NO MAC FOUND"
 
   json_array = [] # store packages as hashes for conversion to JSON
-
   # cycle through the found packages
   packages.each do |pack|
-    next if pack.nil? || pack.empty?
+    next if pack.nil?
 	name = ($os == 'darwin') ? (pack.to_s.match(/.*:/).to_s).gsub(/:/, "").strip : ((pack.match(/\'.*\':/)).to_s).gsub(/\'|:/, "")
 	version = ($os == 'darwin') ? (pack.to_s.match(/Version:.*/).to_s).gsub(/Version:/, "").strip : ((pack.match(/\'.*\',/)).to_s).gsub(/\'|,/, "")
     json_array.push({ "name" => name, "version" => version })
