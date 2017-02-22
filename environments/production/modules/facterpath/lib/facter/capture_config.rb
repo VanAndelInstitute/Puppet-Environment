@@ -1,4 +1,7 @@
 # encoding: utf-8
+
+exit if (Facter.value(:operatingsystem).nil? or Facter.value(:operatingsystem).empty? or Facter.value(:operatingsystem) =~ /[Ww]indows/)
+
 require_relative 'lib/filebucket_request'
 require_relative 'lib/silence_output'
 require_relative 'lib/facter_call'

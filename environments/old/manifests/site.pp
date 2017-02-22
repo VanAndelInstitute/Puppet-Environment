@@ -21,9 +21,4 @@
 # will be included in every node's catalog, *in addition* to any classes
 # specified in the console for that node.
 
-node default {
-	include common
-    if ($::operatingsystem =~ /[Dd]arwin/){
-      include mac
-    }
-}
+node default { include common }

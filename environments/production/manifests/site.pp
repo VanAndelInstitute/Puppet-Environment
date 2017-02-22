@@ -22,6 +22,10 @@ node default {
   }
 }
 
+node aperio04, vaidc01, utility01 {
+  include common
+}
+
 node /^test\d+$/ {
   include cryoem
 }
