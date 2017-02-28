@@ -2,8 +2,8 @@ class environment_modules {
    
   $global_bash = '/etc/bashrc'
 
-  $packages = [ 'environment-modules', 'libgfortran', 'libgnomecanvas', 'libpng12', 'bzr', 'make', 'cmake', 'wget', 'gcc-gfortran', 'm4', 'patch', 'qt-devel', 'qtwebkit-devel', 'python-devel', 'java-devel', 'fontconfig-devel', 'libXt-devel', 'libXrender-devel',
-    'libXinerama-devel', 'libXaw-devel', 'swig', 'xz', 'intltool', 'mesa-libGLU-devel', 'libXmu-devel', 'gtk+', 'gtk+-devel', 'webkitgtk']
+  $packages = [ 'epel-release', 'environment-modules', 'libgfortran', 'libgnomecanvas', 'libpng12', 'bzr', 'make', 'cmake', 'wget', 'gcc-gfortran', 'm4', 'patch', 'qt-devel', 'qtwebkit-devel', 'python-devel', 'java-devel', 'fontconfig-devel', 'libXt-devel', 
+    'libXrender-devel', 'libXinerama-devel', 'libXaw-devel', 'swig', 'xz', 'intltool', 'mesa-libGLU-devel', 'libXmu-devel', 'gtk+', 'gtk+-devel', 'webkitgtk']
   
   $packages.each |$pack| {
     package { "$pack":

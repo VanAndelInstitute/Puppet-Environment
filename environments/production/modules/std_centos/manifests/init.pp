@@ -1,5 +1,5 @@
 class std_centos {
-  if ($::operatingsystem == 'centos' or $::operatingsystem == 'redhat'){
+  if ($::operatingsystem =~ /[Cc]entos/ or $::operatingsystem =~ /[Rr]edhat/){
     include common
     include sssd
     include graylog
