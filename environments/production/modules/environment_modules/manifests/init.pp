@@ -134,6 +134,14 @@ class environment_modules {
       export PATH="${SPIDER_DIR}/bin:${PATH}"
      ',
     }
+
+    file { 'start_cryosparc':
+      path    => '/root/start_cryosparc.sh',
+      ensure  => present,
+      mode    => '0777',
+      content => 'cryosparc start',
+    }
+
     file { 'eman2':
       path    => '/etc/profile.d/eman2.sh',
       ensure  => present,
@@ -141,6 +149,12 @@ class environment_modules {
      content => "source /opt/EMAN2/eman2.bashrc
     
       ",
+    }
+    file { 'cryosparc':
+      path    => '/etc/profile.d/x_add_cryosparc.sh',
+      ensure  => present,
+      mode    => '0755',
+      content => 'export PATH="/opt/cryosparc/bin":$PATH',
     }
     file { 'phenix':
       path    => '/etc/profile.d/phenix.sh',

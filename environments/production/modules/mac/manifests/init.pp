@@ -1,17 +1,18 @@
 class mac {
-  #if($::operatingsystem == "darwin"){
+  if($::operatingsystem == "darwin"){
     
-    #package { 'googlechrome' : 
-    #ensure => installed,
-        #provider => appdmg,
-        #source => 'https://puppet.vai.org:8000/puppet_repo/apps/googlechrome/googlechrome.dmg',
-        #}
-    
-    #package { 'puppet-agent-1.9.1.1.osx10.10' :
-    #  ensure   => installed,
-    #  provider => appdmg,
-    #  source   => 'https://puppet.vai.org:8000/puppet_repo/apps/puppet-agent-1.9.1.1.osx10.10/puppet-agent-1.9.1.1.osx10.10.dmg',
-    #}
+    package { 'Protect_fireampmac_connector' : 
+  	  ensure => installed,
+  	  provider => pkgdmg,
+  	  source => 'http://puppet.vai.org:8000/puppet_repo/apps/Protect_fireampmac_connector/Protect_fireampmac_connector.pkg',
+    }
+  
+    package { 'Firefox_51.0' : 
+		ensure => installed,
+		provider => appdmg,
+		source => 'http://puppet.vai.org:8000/puppet_repo/apps/Firefox_51.0/Firefox_51.0.dmg',
+	}
+
 	# New Package Goes Here
-    #}
+  }
 }

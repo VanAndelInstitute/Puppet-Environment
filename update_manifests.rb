@@ -8,7 +8,7 @@ $development_env    = "#{env_root}development/"
 $production_env     = "#{env_root}production/"
 $test_env           = "#{env_root}test/"
 
-$online_puppet_repo = "https://puppet.vai.org:8000/puppet_repo/apps"
+$online_puppet_repo = "http://puppet.vai.org:8000/puppet_repo/apps"
 
 $puppet_repo    = "/root/puppet_uploader/public/puppet_repo"
 $apps           = "#{$puppet_repo}/apps"
@@ -18,15 +18,14 @@ def search
   Dir.foreach($public_root) do |item|
     next if item == '.' or item == '..'
     unless (Dir.entries("#{$public_root}/#{item}").size == 0)
-      Dir.chdir("#{$public_root}/#{item}") do
-        file = Dir.entries("#{$public_root}/#{item}")[1]
-        
+      Dir.chdir("#{$public_root}/#{item}") do 
+        file = Dir.entries("#{$public_root}/#{item}")[2]
+        file = Dir.entries("#$public_root/#{item}")[1] if file == '.'
         extension = "." + file.split(".")[-1]
         file = file.split(extension)[0]
         dir = file.split("_")[2..-1].join("_") 
-        
-        `mkdir #{$apps}/#{file}/` unless (Dir.exist? file)
-        `cp * #{$apps}/#{file}/#{file}#{extension}` unless (File.exist? "#{file}#{extension}")
+        `mkdir #{$apps}/#{dir}/` unless (Dir.exist? "#$apps/#{dir}")
+        `cp * #{$apps}/#{dir}/#{dir}#{extension}` unless (File.exist? "#$apps/#{dir}#{extension}")
     
         add_to_manifest(file, extension)
       end 
