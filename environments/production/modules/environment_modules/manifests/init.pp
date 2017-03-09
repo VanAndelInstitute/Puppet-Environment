@@ -66,7 +66,8 @@ class environment_modules {
       
       ",
     }
-  
+    
+    if !($::fqdn =~ /[Cc]ryo/){
     file { 'add_cuda':
       path    => '/etc/profile.d/z_add_cuda.sh',
       ensure  => present,
@@ -74,6 +75,7 @@ class environment_modules {
       content => "module add cuda70
       
       ",
+    }
     }
   }
   
