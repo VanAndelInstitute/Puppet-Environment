@@ -15,7 +15,7 @@ $host           = info_hash["host"]
 def joined (os)
   case os
   when "darwin" then return ((`dsconfigad -show | awk '/Active Directory Domain/{print $NF}'`).include? $host)
-  when "redhat","centos" then return (!(`systemctl status sssd`).include? "failed")
+  when "redhat","centos" then return (!(`systemctl status sssd`).downcase.include? "failed" or !(`systemctl status sssd`).downcase.include? "dead")
   when "windows" then return true
   else  Puppet.notice("Error in AD join. #{os} not currently supported through Puppet.")
   end

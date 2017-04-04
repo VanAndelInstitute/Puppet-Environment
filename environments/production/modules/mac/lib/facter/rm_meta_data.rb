@@ -6,6 +6,10 @@ def compare_app_with puppet_app, apps, count=0
     File.delete("#$puppet_db_dir/#{puppet_app}") if count == apps.length
 end
 
+def check_file 
+  list_file = "/opt/puppetlabs/puppet/cache/lib/facter/list.txt"
+end
+
 def search 
   return unless (Facter.value(:operatingsystem).downcase == "darwin")
 

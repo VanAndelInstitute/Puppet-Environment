@@ -1,7 +1,10 @@
 $temp               = "/root/temp/"
 
 $mac_manifest       = "modules/mac/manifests/init.pp"
+$mac_list           = "modules/mac/lib/facter/list.txt"
+
 $windows_manifest   = "modules/windows/manifests/init.pp"
+$windows_list       = "modules/windows/lib/facter/list.txt"
 
 env_root            = "/etc/puppetlabs/code/environments/"
 $development_env    = "#{env_root}development/"
@@ -42,7 +45,8 @@ def add_to_manifest(file, extension)
       manifest = tokens[1]
       
       environment = ((env.include? "development") ? $development_env : ((env.include? "production") ? $production_env : $test_env))
-      manifest = ((manifest.include? "standardmac") ? $mac_manifest : $windows_manifest)
+      manifest = ((manifest.include? "mac") ? $mac_manifest : $windows_manifest)
+      list = ((manifest.include? "mac") ? $mac_list : $windows_list)
 
       package = (tokens[2..-1]).join("_").split(/\.tmp/)[0]
       package = package.split(extension)[0]
@@ -56,7 +60,11 @@ def add_to_manifest(file, extension)
       manifest_file = "#{environment}#{manifest}"
       manifest_contents = File.read(manifest_file)
       
+      list_file = "#{environment+list}"
+      list_contents = File.read(list_file)
+
       File.write(manifest_file, manifest_contents.gsub(/# New Package Goes Here/, pkg_template)) unless (manifest_contents.include? package)
+      File.open(list_file, 'a'){|f| f.write(package)} unless (list_contents.include? package)
 end
 
 search 
