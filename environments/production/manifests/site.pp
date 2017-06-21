@@ -54,3 +54,7 @@ node munki {
   include std_centos
   include mount_drives
 }
+
+node status {
+  include std_centos
+}
