@@ -53,7 +53,7 @@ def setup
       msg = "Drift detected on #$fqdn. (#$time)"
       
       # send an error only if found drift differs from prev drift
-      (prev_drift.gsub(/\s/,"") == $curr_drift.gsub(/\s/, "")) ? Puppet.notice(msg) : Puppet.warning(msg) 
+      (prev_drift.gsub(/\s/,"") == $curr_drift.gsub(/\s/, "")) ? Puppet.warning(msg) : Puppet.err(msg) 
     end
   end
 

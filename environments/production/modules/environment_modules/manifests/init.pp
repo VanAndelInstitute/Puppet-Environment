@@ -31,14 +31,6 @@ class environment_modules {
       line => '## Managed by Puppet.',
   }
     
-  file { 'x_module_path':
-    path    => '/etc/profile.d/x_module_path.sh',
-    ensure  => 'present',
-    mode    => '0755',
-    content => 'export MODULEPATH=/primary/vari/software/modules/linuxworkstation:$MODULEPATH
-    ',
-  }
-
   file { 'add_relion':
     path    => '/etc/profile.d/z_add_relion.sh',
     ensure  => present,
@@ -48,7 +40,7 @@ class environment_modules {
     ',
   }
 
-  if (!($::fqdn =~ "lens5")){
+  if (!($::fqdn =~ "lens")){
     file { 'add_mpich':
       path    => '/etc/profile.d/z_add_mpich.sh',
       ensure  => present,
@@ -56,6 +48,14 @@ class environment_modules {
       content => "module add mpich314
        
       ",
+    }
+    
+    file { 'x_module_path':
+      path    => '/etc/profile.d/x_module_path.sh',
+      ensure  => 'present',
+      mode    => '0755',
+      content => 'export MODULEPATH=/primary/vari/software/modules/linuxworkstation:$MODULEPATH
+      ',
     }
 
     file { 'add_cryoem':
@@ -144,14 +144,15 @@ class environment_modules {
       content => 'cryosparc start',
     }
 
-    file { 'eman2':
-      path    => '/etc/profile.d/eman2.sh',
-      ensure  => present,
-      mode    => '0755',
-     content => "source /opt/EMAN2/eman2.bashrc
+    #file { 'eman2':
+    #  path    => '/etc/profile.d/eman2.sh',
+    #  ensure  => present,
+    #  mode    => '0755',
+    # content => "source /opt/EMAN2/eman2.bashrc
     
-      ",
-    }
+    #  ",
+    #}
+
     file { 'cryosparc':
       path    => '/etc/profile.d/x_add_cryosparc.sh',
       ensure  => present,

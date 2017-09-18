@@ -44,8 +44,14 @@ node foreman {
   include centos_server
 }
 
+node gongpuvictory {
+  include cryoem
+  include pymol_module
+  include research_centos
+}
+
 # matches all of the cryoEM machines
-node /cryo[-_]em[_-]linux\d+/, gongpuvictory {
+node /cryo[-_]em[_-]linux\d+/ {
   include cryoem
   include pymol_module
 }
