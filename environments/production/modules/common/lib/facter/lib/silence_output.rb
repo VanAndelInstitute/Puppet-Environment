@@ -3,12 +3,15 @@
 #   to reduce warning and error noise
 #   produced by outside tools.
 ##
-def silence_output 
+
+def silence_output
+  n = (RUBY_PLATFORM =~ /mingw/) ? 'NUL' : '/dev/null'
+
   begin
     orig_stderr = $stderr.clone
     orig_stdout = $stdout.clone
-    $stderr.reopen File.new('/dev/null', 'w')
-    $stdout.reopen File.new('/dev/null', 'w')
+    $stderr.reopen File.new(n, 'w')
+    $stdout.reopen File.new(n, 'w')
     retval = yield
   rescue Exception => e
     $stdout.reopen orig_stdout

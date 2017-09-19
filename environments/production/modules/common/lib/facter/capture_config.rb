@@ -20,8 +20,9 @@ def setup
   linux_filepath = "/opt/puppetlabs/facter/facts.d/"
 
   # determine where to store facts based on the OS
-  filepath = ($os.include? "windows") ? windows_filepath : linux_filepath
-  
+  filepath = ($os.include? "windows") ? windows_filepath : linux_filepath 
+  is_windows = ($os.include? "windows") ? true : false
+
   config_file = "#{filepath+$fqdn}_configuration.json"
   $drift = "#{filepath+$fqdn}_drift.json"
   $back = "#{filepath+$fqdn}_back.json"
@@ -49,7 +50,11 @@ def setup
     if current == saved; Puppet.notice "No drift detected on #$fqdn. (#$time)"
     
     elsif drift_found(current, saved) # check for drift
-      prev_drift = facter_call(:drift) || $curr_drift
+      
+      # pull the previous drift from the system, if there is no previous drift, set the prev_drift to the current drift
+      prev_drift = facter_call(:drift) 
+      prev_drift = $curr_drift if prev_drift.strip.empty?
+
       msg = "Drift detected on #$fqdn. (#$time)"
       
       # send an error only if found drift differs from prev drift
