@@ -38,6 +38,22 @@
         content => 'anthony.watkins ALL=(ALL) ALL',
       }
     }
+    
+    # Rob Montroy gets sudo access on Biobankdb01
+    /[Bb]iobankdb\d+\.vai\.org/: {
+      sudo::conf { 'robmontroy':
+        ensure  => present,
+        content => 'rob.montroy ALL=(ALL) ALL',
+      }
+    }
+    
+    # Anthony Watkins gets sudo access on One  
+    /[Oo]ne\.vai\.org/: {
+      sudo::conf { 'anthonywatkins':
+        ensure  => present,
+        content => 'anthony.watkins ALL=(ALL) ALL',
+      }
+    }
 
     # Gongpu gets sudo access on his machine
     /gongpuvictory\.vai\.org/: {

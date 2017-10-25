@@ -21,7 +21,6 @@ def setup
 
   # determine where to store facts based on the OS
   filepath = ($os.include? "windows") ? windows_filepath : linux_filepath 
-  is_windows = ($os.include? "windows") ? true : false
 
   config_file = "#{filepath+$fqdn}_configuration.json"
   $drift = "#{filepath+$fqdn}_drift.json"
@@ -53,7 +52,7 @@ def setup
       
       # pull the previous drift from the system, if there is no previous drift, set the prev_drift to the current drift
       prev_drift = facter_call(:drift) 
-      prev_drift = $curr_drift if prev_drift.strip.empty?
+      prev_drift = $curr_drift if prev_drift.strip.empty? or $fqdn =~ /[Gg]ongpu/ # fix while investigating a bug
 
       msg = "Drift detected on #$fqdn. (#$time)"
       

@@ -26,8 +26,11 @@ node aperio04, vaidc01, utility01 {
   include common
 }
 
-node /^test\d+$/ {
-  include cryoem
+node /biobankdb/ {
+    include common
+    include sssd
+    include graylog
+    include dummy_login
 }
 
 node matt {
