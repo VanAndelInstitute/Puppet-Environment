@@ -27,8 +27,7 @@ node /^test\d+$/ {
 }
 
 node matt {
-  include research_centos
-  include pymol_module
+  include common
 }
 
 # Matches all of the lens machines for Huilin's team
