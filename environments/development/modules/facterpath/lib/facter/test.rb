@@ -1,5 +1,4 @@
 # encoding: utf-8
-require 'facter'
 require 'digest'
 
 class Configuration
@@ -8,7 +7,7 @@ class Configuration
   @@SERVER = "foreman.vai.org"#(JSON.parse(join_info))["server"]
 
   @@WINDOWS_PATH = "C:/ProgramData/PuppetLabs/facter/facts.d/"
-  @@LINUX_PATH = "/root/" #/opt/puppetlabs/facter/facts.d/"
+  @@LINUX_PATH = "/opt/puppetlabs/facter/facts.d/"
   
   def initialize
     @os             = facter_call(:operatingsystem).downcase
@@ -23,8 +22,7 @@ class Configuration
   end
 
   def run
-    restore_configuration if missing_configuration
-    capture_configuration
+    restore_configuration unless configuration_found
     compare_configuration
     save
   end
@@ -32,11 +30,11 @@ class Configuration
   private
 
   def capture_configuration
-   puppet_call(:notice, "Capturing current configuration...")
+    puppet_call(:notice, "Capturing current configuration...")
 
-    json_array = []
-    json_array.push({"name" => "ip address", "version" => facter_call(:ipaddress)})
-    json_array.push({"name" => "mac address", "version" => facter_call(:macaddress)})
+    json = []
+    json.push({"name" => "ip address", "version" => facter_call(:ipaddress)})
+    json.push({"name" => "mac address", "version" => facter_call(:macaddress)})
 
     packages = 
       if @os == 'darwin'
@@ -47,9 +45,9 @@ class Configuration
         out.each_slice(3).map {|slice| slice.join("\n")}
       end
     
-    packages.each {|pack| json_array.push(extract_info_from pack)}
+    packages.each {|pack| json.push(extract_info_from pack)}
 
-    return JSON.generate({:packages => json_array})
+    return JSON.generate({:packages => json})
   end
 
   def compare_configuration
@@ -59,31 +57,35 @@ class Configuration
     
     File.delete(@config_file, @drift_file) if(response.nil? || response.empty?)
 
-    saved_configuration = facter_call(:packages)
-    
-    if(@configuration == saved_configuration) 
+    saved_configuration = facter_call(:packages).to_s.gsub("\s","")
+    current_configuration = (JSON.parse(@configuration)["packages"]).to_s.gsub("\s","")
+    if(current_configuration == saved_configuration) 
       puppet_call(:notice, "No drift detected on #{@fqdn}.")
     else
-      current_array = @configuration.to_s.to_a
+      puppet_call(:notice, "curr: #{current_configuration} ec\n\n")
+      puppet_call(:notice, "saved: #{saved_configuration} es")
+
+      
+      current_array = current_configuration.to_a
       saved_array = saved_configuration.to_a
       difference = (current_array - saved_array) + (saved_array - current_array)
 
       difference.each do |d|
-        msg = d["name"] + " " + d["version"]
+        msg = "#{d["name"]} #{d["version"]}"
 
         if !(current_array.to_s.include? saved_array.to_s)
-          msg.concat(" not found on #{@fqdn}.")
+          msg << " not found on #{@fqdn}."
         elsif !(saved_array.to_s.include? d)
-          msg.concat(" installed on #{@fqdn} after configuration.")
+          msg << " installed on #{@fqdn} after configuration."
         else
           current_array.each do
             if x["name"] == d["name"] && x["version"] != d["version"]
-              msg.concat(" replaced by " + x["name"] + " " + x["version"] + ".") 
+              msg << " replaced by #{x["name"]} #{x["version"]}."
             end
           end
         end
 
-        puppet_call(notice, "#{msg}") unless msg.to_s.empty?
+        puppet_call(:notice, "#{msg}") unless msg.to_s.empty?
         @current_drift += msg.to_s unless @current_drift.include? msg.to_s
       end
 
@@ -96,7 +98,7 @@ class Configuration
     end
   end
   
-  def missing_configuration
+  def configuration_found
     File.exist? @config_file
   end
 
@@ -119,7 +121,7 @@ class Configuration
       cached_files = list.split("\n")
 
       cached_files.reverse_each do |line|
-        next if !(line.include? file) || restored
+        next if !(line.include? @config_file) || restored
 
         sum = line.split(" ")[0]
         response = filebucket_request(:get, sum: sum)
@@ -128,7 +130,7 @@ class Configuration
 
           restored = true
           filebucket_request(:restore, file: @config_file, sum: sum)
-          puppet_call(notice, "Restored #{@config_file} from #{@@SERVER} (#{sum})")
+          puppet_call(:notice, "Restored #{@config_file} from #{@@SERVER} (#{sum})")
         end
       end 
     end
