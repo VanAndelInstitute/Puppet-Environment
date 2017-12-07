@@ -15,7 +15,7 @@ $host           = info_hash["host"]
 def joined (os)
   case os
   when "darwin" then return ((`dsconfigad -show | awk '/Active Directory Domain/{print $NF}'`).include? $host)
-  when "redhat","centos" then return (!(`systemctl status sssd`).downcase.include? "failed" or !(`systemctl status sssd`).downcase.include? "dead")
+  when "redhat","centos" then return sssd_status
   when "windows" then return true
   else  Puppet.notice("Error in AD join. #{os} not currently supported through Puppet.")
   end
@@ -41,6 +41,15 @@ def adjoin (os)
 	(`/usr/bin/net ads join -U #{$ad_admin}%#{$ad_admin_pass}`)
     (`/usr/sbin/authconfig --enablesssd --enablesssdauth --enablemkhomedir --updateall`)
   end
+end
+
+def sssd_status
+  output = (`systemctl status sssd`).downcase
+  if (output =~ /could\snot\sbe\sfound/)
+    return true
+  end
+
+  !(output =~ /failed|dead/)
 end
 
 # Grab the OS from Facter and attempt to join the machine to the AD

@@ -11,55 +11,49 @@
     content => 'login ALL=(ALL) ALL',
   }
 
-  # give sudo access to specfic teams on their nodes
-  # separate machines by their domain name
+  # separate machines by their domain name, sudo access files are
+  # retrieved from /etc/puppetlabs/code/environments/productions/modules/privileges/files
   case $facts['fqdn'] {
-    
-    # hli.lab-modify gets sudo access on Lens machines
+   
     /[Ll]ens\d+\.vai\.org/: {
-      sudo::conf { 'hli.lab-modify':
-        ensure  => present,
-        content => '%hli.lab-modify ALL=(ALL) ALL',
+      sudo::conf { 'lens':
+        ensure => present,
+        source => 'puppet:///modules/privileges/lens',
       }
     }
     
-    # haab.lab-modify gets sudo access on Haab machines
     /[Hh]aab\d+\.vai\.org/: {
-      sudo::conf { 'haablabmodify':
-        ensure  => present,
-        content => '%haab.lab-modify ALL=(ALL) ALL',
-      }
-    }
-
-    # Anthony Watkins gets sudo access on Biobankdb01
-    /[Bb]iobankdb\d+\.vai\.org/: {
-      sudo::conf { 'anthonywatkins':
-        ensure  => present,
-        content => 'anthony.watkins ALL=(ALL) ALL',
+      sudo::conf { 'haab':
+        ensure => present,
+        source => 'puppet:///modules/privileges/haab',
       }
     }
     
-    # Rob Montroy gets sudo access on Biobankdb01
     /[Bb]iobankdb\d+\.vai\.org/: {
-      sudo::conf { 'robmontroy':
-        ensure  => present,
-        content => 'rob.montroy ALL=(ALL) ALL',
+      sudo::conf { 'biobankdb':
+        ensure => present,
+        source => 'puppet:///modules/privileges/biobankdb',
       }
     }
     
-    # Anthony Watkins gets sudo access on One  
     /[Oo]ne\.vai\.org/: {
-      sudo::conf { 'anthonywatkins':
-        ensure  => present,
-        content => 'anthony.watkins ALL=(ALL) ALL',
+      sudo::conf { 'one':
+        ensure => present,
+        source => 'puppet:///modules/privileges/one',
       }
     }
 
-    # Gongpu gets sudo access on his machine
-    /gongpuvictory\.vai\.org/: {
-      sudo::conf { 'gongpuzhao':
-        ensure  => present,
-        content => 'gongpu.zhao ALL=(ALL) ALL',
+    /[Gg]ongpuvictory\.vai\.org/: {
+      sudo::conf { 'gongpu':
+        ensure => present,
+        source => 'puppet:///modules/privileges/gongpu',
+      }
+    }
+    
+    /[Ll]nxweb\d+\.vai\.org/: {
+      sudo::conf { 'lnxweb':
+        ensure => present,
+        source => 'puppet:///modules/privileges/lnxweb',
       }
     }
   }

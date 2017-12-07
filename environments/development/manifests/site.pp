@@ -28,6 +28,7 @@ node /^test\d+$/ {
 
 node matt {
   include common
+  include graylog
 }
 
 # Matches all of the lens machines for Huilin's team

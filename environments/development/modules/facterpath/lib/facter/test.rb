@@ -1,5 +1,6 @@
 # encoding: utf-8
 require 'digest'
+require_relative 'lib/silence_output.rb'
 
 class Configuration
   
@@ -23,7 +24,12 @@ class Configuration
   end
 
   def run
-    restore_configuration unless configuration_found
+    unless configuration_found
+      restore_configuration
+    else
+      save
+    end
+
     compare_configuration
     save
   end
@@ -56,28 +62,33 @@ class Configuration
     sum = Digest::MD5.file @config_file
     response = filebucket_request(:get, sum: sum)
     
-    File.delete(@config_file, @drift_file) if(response.nil? || response.empty?)
+    File.delete(@config_file) if(response.nil? || response.empty?)
 
-    saved_configuration = facter_call(:packages)
-    current_configuration = JSON.parse(@configuration)["packages"] 
+    saved_configuration = (facter_call(:packages)).to_json
+    saved_configuration = (JSON.parse(saved_configuration.to_s))
+    puppet_call(:notice, saved_configuration)
     
+    current_configuration = @configuration.to_json 
+  
     if(current_configuration == saved_configuration) 
       puppet_call(:notice, "No drift detected on #{@fqdn}.")
     else
-      current_array = current_configuration.to_a
+
       saved_array = saved_configuration.to_a
-      difference = (current_array - saved_array) + (saved_array - current_array)
+      current_array = current_configuration.to_a
       
+      difference = (saved_array - current_array) + (current_array - saved_array)
+
       difference.each do |d|
         msg = "#{d["name"]} #{d["version"]}"
 
-        if !(current_array.include? saved_array)
+        if !(current_array.to_s.include? d.to_s)
           msg << " not found on #{@fqdn}."
         elsif !(saved_array.include? d)
           msg << " installed on #{@fqdn} after configuration."
         else
-          current_array.each do
-            if x["name"] == d["name"] && x["version"] != d["version"]
+          current_array.each do |x|
+            if(x["name"] == d["name"] && x["version"] != d["version"])
               msg << " replaced by #{x["name"]} #{x["version"]}."
             end
           end
@@ -108,67 +119,6 @@ class Configuration
     d1.gsub(/\s/,"") == d2.gsub(/\s/, "")
   end
 
-  def save
-    File.write(@config_file, @configuration)
-
-    filebucket_request(:local_backup, file: @config_file)
-    filebucket_request(:remote_backup, file: @config_file)
-  end
-
-  def restore_configuration
-    list = filebucket_request(:list)
-    restored = false
-
-    unless(list.nil? || list.empty?)
-      cached_files = list.split("\n")
-
-      cached_files.reverse_each do |line|
-        next if(!(line.include? @config_file) || restored)
-
-        sum = line.split(" ")[0]
-        response = filebucket_request(:get, sum: sum)
-
-        unless(response.nil? || response.empty? || restored)
-
-          restored = true
-          filebucket_request(:restore, file: @config_file, sum: sum)
-          puppet_call(:notice, "Restored #{@config_file} from #{@@SERVER} (#{sum})")
-        end
-      end 
-    end
-  end
-
-  def filebucket_request(type, file: "", sum: "")
-    cmd = (@os.include? "windows") ? "puppet" : "/opt/puppetlabs/bin/puppet"
-    case type
-    when /get/
-      `#{cmd} filebucket get #{sum} --server #{@@SERVER}`
-    when /restore/
-      `#{cmd} filebucket restore #{file} #{sum} --server #{@@SERVER}`
-    when /local_backup/
-      `#{cmd} filebucket backup #{file} -l`
-    when /remote_backup/
-      `#{cmd} filebucket backup #{file} --server #{@@SERVER}`
-    when /list/ 
-      `#{cmd} filebucket -l list`
-    end
-  end
-
-  def puppet_call(type, val)
-    case type
-    when /warn/
-      Puppet.warning val
-    when /err/
-      Puppet.err val
-    when /notice/
-      Puppet.notice val
-    end
-  end
-
-  def facter_call val
-    (Facter.value(val.to_sym))
-  end
-
   def extract_info_from pack
     return if pack.nil?
 
@@ -188,6 +138,72 @@ class Configuration
     
     return {"name" => name, "version" => version}
   end
+
+  def facter_call val
+    (Facter.value(val.to_sym))
+  end
+  
+  def filebucket_request(type, file: "", sum: "")
+    cmd = (@os.include? "windows") ? "puppet" : "/opt/puppetlabs/bin/puppet"
+    
+    request = 
+      case type
+      when /get/
+        "#{cmd} filebucket get #{sum} --server #{@@SERVER}"
+      when /restore/
+        "#{cmd} filebucket restore #{file} #{sum} --server #{@@SERVER}"
+      when /local_backup/
+        "#{cmd} filebucket backup #{file} -l"
+      when /remote_backup/
+        "#{cmd} filebucket backup #{file} --server #{@@SERVER}"
+      when /list/ 
+        "#{cmd} filebucket -l list"
+      end
+
+    silence_output{`#{request}`}
+  end
+  
+  def puppet_call(type, val)
+    case type
+    when /warn/
+      Puppet.warning val
+    when /err/
+      Puppet.err val
+    when /notice/
+      Puppet.notice val
+    end
+  end
+  
+  def restore_configuration
+    list = filebucket_request(:list)
+    restored = false
+
+    unless(list.nil? || list.empty?)
+      cached_files = list.split("\n")
+
+      cached_files.reverse_each do |line|
+        next if(!(line.include? @config_file) || restored)
+        
+        sum = line.split(" ")[0]
+        response = filebucket_request(:get, sum: sum)
+
+        unless(response.nil? || response.empty? || restored)
+
+          restored = true
+          filebucket_request(:restore, file: @config_file, sum: sum)
+          puppet_call(:notice, "Restored #{@config_file} from #{@@SERVER} (#{sum})")
+        end
+      end 
+    end
+  end
+
+  def save
+    File.write(@config_file, @configuration)
+
+    filebucket_request(:local_backup, file: @config_file)
+    filebucket_request(:remote_backup, file: @config_file)
+  end
+
 end
 
 Configuration.new.run
