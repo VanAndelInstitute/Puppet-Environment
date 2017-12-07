@@ -20,18 +20,12 @@ class Configuration
     @drift_file     = prefix + "_drift.json"  
 
     @configuration  = capture_configuration
-    @current_drift  = ""
+    @current_drift  = facter_call(:drift) 
   end
 
   def run
-    unless configuration_found
-      restore_configuration
-    else
-      save
-    end
-
+    restore_configuration unless configuration_found
     compare_configuration
-    save
   end
 
   private
@@ -56,26 +50,25 @@ class Configuration
 
     return JSON.generate({:packages => json})
   end
-
+  
   def compare_configuration
     
     sum = Digest::MD5.file @config_file
     response = filebucket_request(:get, sum: sum)
     
     File.delete(@config_file) if(response.nil? || response.empty?)
-
-    saved_configuration = (facter_call(:packages)).to_json
-    saved_configuration = (JSON.parse(saved_configuration.to_s))
-    puppet_call(:notice, saved_configuration)
-    
-    current_configuration = @configuration.to_json 
   
-    if(current_configuration == saved_configuration) 
+    saved_configuration = JSON.parse(File.read(@config_file))
+    current_configuration = JSON.parse(@configuration)
+ 
+    if(current_configuration == saved_configuration)
+      puppet_call(:notice, saved_configuration)
+      puppet_call(:notice, current_configuration) 
       puppet_call(:notice, "No drift detected on #{@fqdn}.")
     else
 
-      saved_array = saved_configuration.to_a
-      current_array = current_configuration.to_a
+      saved_array = saved_configuration["packages"].to_a
+      current_array = current_configuration["packages"].to_a
       
       difference = (saved_array - current_array) + (current_array - saved_array)
 
@@ -83,13 +76,13 @@ class Configuration
         msg = "#{d["name"]} #{d["version"]}"
 
         if !(current_array.to_s.include? d.to_s)
-          msg << " not found on #{@fqdn}."
+          msg << " removed from #{@fqdn} after initial configuration capture."
         elsif !(saved_array.include? d)
-          msg << " installed on #{@fqdn} after configuration."
+          msg << " installed on #{@fqdn} after initial configuration capture."
         else
           current_array.each do |x|
             if(x["name"] == d["name"] && x["version"] != d["version"])
-              msg << " replaced by #{x["name"]} #{x["version"]}."
+              msg << " replaced by #{x["name"]} #{x["version"]} after initial configuration capture."
             end
           end
         end
@@ -98,8 +91,8 @@ class Configuration
         @current_drift += msg.to_s unless(@current_drift.include?(msg.to_s))
       end
 
-      #prev_drift = facter_call(:drift)
-      prev_drift = @current_drift #if prev_drift.strip.empty?
+      prev_drift = facter_call(:drift)
+      prev_drift = @current_drift if prev_drift.strip.empty?
 
       msg = "Drift detected on #{@fqdn}."
       if drift?(prev_drift, @current_drift)
@@ -107,7 +100,8 @@ class Configuration
       else
         puppet_call(:err, msg)
       end
-    
+      
+      File.write(@drift_file, JSON.generate({:drift => @current_drift}))  
     end
   end
   
@@ -195,15 +189,22 @@ class Configuration
         end
       end 
     end
+
+    if !(restored)
+      puppet_call(:notice, "No configuration found at #{@config_file}. Capturing a new configuration.")
+      save
+    end
   end
 
   def save
     File.write(@config_file, @configuration)
-
-    filebucket_request(:local_backup, file: @config_file)
-    filebucket_request(:remote_backup, file: @config_file)
+    File.write(@drift_file, JSON.generate({:drift =>@current_drift}))  
+    
+    if configuration_found
+      filebucket_request(:local_backup, file: @config_file)
+      filebucket_request(:remote_backup, file: @config_file)
+    end
   end
-
 end
 
 Configuration.new.run
