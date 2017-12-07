@@ -62,8 +62,6 @@ class Configuration
     current_configuration = JSON.parse(@configuration)
  
     if(current_configuration == saved_configuration)
-      puppet_call(:notice, saved_configuration)
-      puppet_call(:notice, current_configuration) 
       puppet_call(:notice, "No drift detected on #{@fqdn}.")
     else
 

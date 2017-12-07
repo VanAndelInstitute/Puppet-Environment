@@ -26,16 +26,15 @@ node aperio04, vaidc01, utility01 {
   include common
 }
 
+node matt {
+  include std_centos
+}
+
 node /biobankdb/ {
     include common
     include sssd
     include graylog
     include dummy_login
-}
-
-node matt {
-  include research_centos
-  include pymol_module
 }
 
 # Matches all of the lens machines for Huilin's team
