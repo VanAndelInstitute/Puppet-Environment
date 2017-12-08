@@ -26,8 +26,8 @@ node aperio04, vaidc01, utility01 {
   include common
 }
 
-node matt {
-  include std_centos
+node /matt/ {
+  include common 
 }
 
 node /biobankdb/ {

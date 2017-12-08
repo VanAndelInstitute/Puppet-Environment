@@ -94,9 +94,9 @@ class Configuration
 
       msg = "Drift detected on #{@fqdn}."
       if drift?(prev_drift, @current_drift)
-        puppet_call(:warn, msg)
-      else
         puppet_call(:err, msg)
+      else
+        puppet_call(:warn, msg)
       end
       
       File.write(@drift_file, JSON.generate({:drift => @current_drift}))  
@@ -108,7 +108,7 @@ class Configuration
   end
 
   def drift?(d1, d2)
-    d1.gsub(/\s/,"") == d2.gsub(/\s/, "")
+    !(d1.gsub(/\s/,"") == d2.gsub(/\s/, ""))
   end
 
   def extract_info_from pack
