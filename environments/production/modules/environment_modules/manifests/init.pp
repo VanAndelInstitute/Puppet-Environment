@@ -68,14 +68,14 @@ class environment_modules {
     }
     
     if !($::fqdn =~ /[Cc]ryo/){
-    file { 'add_cuda':
-      path    => '/etc/profile.d/z_add_cuda.sh',
-      ensure  => present,
-      mode    => '0755',
-      content => "module add cuda70
+      file { 'add_cuda':
+        path    => '/etc/profile.d/z_add_cuda.sh',
+        ensure  => present,
+        mode    => '0755',
+        content => "module add cuda70
       
-      ",
-    }
+        ",
+      }
     }
   }
   
@@ -144,21 +144,13 @@ class environment_modules {
       content => 'cryosparc start',
     }
 
-    #file { 'eman2':
-    #  path    => '/etc/profile.d/eman2.sh',
-    #  ensure  => present,
-    #  mode    => '0755',
-    # content => "source /opt/EMAN2/eman2.bashrc
-    
-    #  ",
-    #}
-
     file { 'cryosparc':
       path    => '/etc/profile.d/x_add_cryosparc.sh',
       ensure  => present,
       mode    => '0755',
       content => 'export PATH="/opt/cryosparc/bin":$PATH',
     }
+    
     file { 'phenix':
       path    => '/etc/profile.d/phenix.sh',
       ensure  => present,
@@ -167,6 +159,7 @@ class environment_modules {
     
       ",
     }
+    
     file { 'coot':
       path    => '/etc/profile.d/coot.sh',
       ensure  => present,
@@ -175,6 +168,7 @@ class environment_modules {
     
       ',
     }
+    
     file { 'chimera':
       path    => '/etc/profile.d/chimera.sh',
       ensure  => present,
@@ -183,6 +177,7 @@ class environment_modules {
     
       ',
     }
+    
     file { 'add_frealign':
       path    => '/etc/profile.d/z_add_frealign.sh',
       ensure  => present,

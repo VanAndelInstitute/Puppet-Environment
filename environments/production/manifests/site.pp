@@ -27,7 +27,9 @@ node aperio04, vaidc01, utility01 {
 }
 
 node /matt/ {
-  include common 
+  include common
+  include sssd
+  include graylog
 }
 
 node /biobankdb/ {

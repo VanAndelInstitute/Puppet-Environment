@@ -15,15 +15,9 @@ class graylog {
   if($facts['os']['name'] =~ /[Rr]ed[Hh]at|[Cc]ent[OS|os]/){
 
     cron { 'uptime check':
-      command => '. /usr/bin/uptime_check',
+      command => '/usr/bin/logger "$(hostname) was reset on $(date)"',
       user    => 'root',
-      hour    => '*',
-    }
-
-    file { '/usr/bin/uptime_check' :                                                
-        ensure => present,                                                          
-        mode   => '0777',                                                           
-        source => 'puppet:///modules/graylog/uptime_check'                                
+      special    => 'reboot',
     }
   }
 }
