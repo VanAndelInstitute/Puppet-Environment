@@ -20,7 +20,7 @@ class Configuration
     @drift_file     = prefix + "_drift.json"  
 
     @configuration  = capture_configuration
-    @current_drift  = facter_call(:drift) 
+    @current_drift  = "" 
   end
 
   def run
@@ -63,8 +63,8 @@ class Configuration
  
     if(current_configuration == saved_configuration)
       puppet_call(:notice, "No drift detected on #{@fqdn}.")
+    
     else
-
       saved_array = saved_configuration["packages"].to_a
       current_array = current_configuration["packages"].to_a
       
@@ -74,26 +74,28 @@ class Configuration
         msg = "#{d["name"]} #{d["version"]}"
 
         if !(current_array.to_s.include? d.to_s)
-          msg << " removed from #{@fqdn} after initial configuration capture."
+          msg << " removed from #{@fqdn}"
         elsif !(saved_array.include? d)
-          msg << " installed on #{@fqdn} after initial configuration capture."
+          msg << " installed on #{@fqdn}"
         else
           current_array.each do |x|
             if(x["name"] == d["name"] && x["version"] != d["version"])
-              msg << " replaced by #{x["name"]} #{x["version"]} after initial configuration capture."
+              msg << " replaced by #{x["name"]} #{x["version"]} on #{fqdn}"
             end
           end
         end
 
+        msg << " after initial configuration capture."
         puppet_call(:notice, "#{msg}") unless msg.to_s.empty?
         @current_drift += msg.to_s unless(@current_drift.include?(msg.to_s))
       end
 
-      prev_drift = facter_call(:drift)
+      prev_drift = facter_call(:drift) || ""
       prev_drift = @current_drift if prev_drift.strip.empty?
 
       msg = "Drift detected on #{@fqdn}."
-      if drift?(prev_drift, @current_drift)
+      
+      if drift_changed?(prev_drift, @current_drift)
         puppet_call(:err, msg)
       else
         puppet_call(:warn, msg)
@@ -107,7 +109,7 @@ class Configuration
     File.exist? @config_file
   end
 
-  def drift?(d1, d2)
+  def drift_changed?(d1, d2)
     !(d1.gsub(/\s/,"") == d2.gsub(/\s/, ""))
   end
 
@@ -183,13 +185,16 @@ class Configuration
 
           restored = true
           filebucket_request(:restore, file: @config_file, sum: sum)
-          puppet_call(:notice, "Restored #{@config_file} from #{@@SERVER} (#{sum})")
+          puppet_call(:notice, 
+                      "Restored #{@config_file} from #{@@SERVER} (#{sum})")
+        
         end
       end 
     end
 
     if !(restored)
-      puppet_call(:notice, "No configuration found at #{@config_file}. Capturing a new configuration.")
+      puppet_call(:notice, "No configuration found at #{@config_file}. "\
+                  "Capturing a new configuration.")
       save
     end
   end
