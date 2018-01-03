@@ -1,1 +1,1 @@
-gongpu.zhao ALL=(ALL) ALL
+gongpu.zhao ALL=(ALL) NOPASSWD: ALL

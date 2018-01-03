@@ -56,5 +56,11 @@
         source => 'puppet:///modules/privileges/lnxweb',
       }
     }
-  }
+    /[Ll]imsdev\d+\.vai\.org/: {
+      sudo::conf { 'limsdev':
+        ensure => present,
+        source => 'puppet:///modules/privileges/limsdev',
+      }
+    }
+ } 
 }
