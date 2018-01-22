@@ -38,7 +38,7 @@ def adjoin (os)
   when "darwin" 
     (`dsconfigad -add #{$host} -u #{$ad_admin} -p #{$ad_admin_pass} -domain #{$domain}`)
   when "redhat","centos"
-	(`/usr/bin/net ads join -U #{$ad_admin}%#{$ad_admin_pass}`)
+	(`/usr/bin/net ads join -U #{$ad_admin}%#{$ad_admin_pass} createcomputer=LinuxMachines`)
     (`/usr/sbin/authconfig --enablesssd --enablesssdauth --enablemkhomedir --updateall`)
   end
 end
