@@ -2,7 +2,8 @@ class environment_modules {
    
   $global_bash = '/etc/bashrc'
 
-  $packages = [ 'environment-modules', 'libgfortran', 'libgnomecanvas', 'libpng12', ]
+  $packages = [ 'epel-release', 'environment-modules', 'libgfortran', 'libgnomecanvas', 'libpng12', 'bzr', 'make', 'cmake', 'wget', 'gcc-gfortran', 'm4', 'patch', 'qt-devel', 'qtwebkit-devel', 'python-devel', 'java-devel', 'fontconfig-devel', 'libXt-devel', 
+    'libXrender-devel', 'libXinerama-devel', 'libXaw-devel', 'swig', 'xz', 'intltool', 'mesa-libGLU-devel', 'libXmu-devel', 'gtk+', 'gtk+-devel', 'webkitgtk', 'compat-libtiff3']
   
   $packages.each |$pack| {
     package { "$pack":
@@ -30,14 +31,6 @@ class environment_modules {
       line => '## Managed by Puppet.',
   }
     
-  file { 'x_module_path':
-    path    => '/etc/profile.d/x_module_path.sh',
-    ensure  => 'present',
-    mode    => '0755',
-    content => 'export MODULEPATH=/primary/vari/software/modules/linuxworkstation:$MODULEPATH
-    ',
-  }
-
   file { 'add_relion':
     path    => '/etc/profile.d/z_add_relion.sh',
     ensure  => present,
@@ -47,22 +40,43 @@ class environment_modules {
     ',
   }
 
-  file { 'add_mpich':
-    path    => '/etc/profile.d/z_add_mpich.sh',
-    ensure  => present,
-    mode    => '0755',
-    content => "module add mpich314
+  if (!($::fqdn =~ "lens")){
+    file { 'add_mpich':
+      path    => '/etc/profile.d/z_add_mpich.sh',
+      ensure  => present,
+      mode    => '0755',
+      content => "module add mpich314
+       
+      ",
+    }
     
-    ",
-  }
+    file { 'x_module_path':
+      path    => '/etc/profile.d/x_module_path.sh',
+      ensure  => 'present',
+      mode    => '0755',
+      content => 'export MODULEPATH=/primary/vari/software/modules/linuxworkstation:$MODULEPATH
+      ',
+    }
 
-  file { 'add_cryoem':
-    path    => '/etc/profile.d/z_add_cryoem.sh',
-    ensure  => present,
-    mode    => '0755',
-    content => "module add cryoem
+    file { 'add_cryoem':
+      path    => '/etc/profile.d/z_add_cryoem.sh',
+      ensure  => present,
+      mode    => '0755',
+      content => "module add cryoem
+      
+      ",
+    }
     
-    ",
+    if !($::fqdn =~ /[Cc]ryo/){
+      file { 'add_cuda':
+        path    => '/etc/profile.d/z_add_cuda.sh',
+        ensure  => present,
+        mode    => '0755',
+        content => "module add cuda70
+      
+        ",
+      }
+    }
   }
   
   file { 'add_MPIHOME':
@@ -73,6 +87,7 @@ class environment_modules {
     
     ',
   }
+  
   file { 'add_MPIRUN':
     path    => '/etc/profile.d/z_add_mpirun.sh',
     ensure  => present,
@@ -81,7 +96,7 @@ class environment_modules {
     
     ',
   }
-  
+
   file { 'add_LIB':
     path    => '/etc/profile.d/z_add_lib.sh',
     ensure  => present,
@@ -91,15 +106,6 @@ class environment_modules {
     '
   }
   
-  file { 'add_cuda':
-    path    => '/etc/profile.d/z_add_cuda.sh',
-    ensure  => present,
-    mode    => '0755',
-    content => "module add cuda70
-    
-    ",
-  }
-
   file { 'add_relionalias':
     path    => '/etc/profile.d/z_add_relionalias.sh',
     ensure  => present,
@@ -118,7 +124,7 @@ class environment_modules {
     ",
   }
   
-  if ($::fqdn =~ /[Cc]ryo/ or $::fqdn =~ /[Gg]ongpu/){
+  if ($::fqdn =~ /[Cc]ryo/ or $::fqdn =~ /[Gg]ongpu/ or $::fqdn =~ /[Mm]att/){
     file { 'spiderweb':
       path    => '/etc/profile.d/spider.sh',
       ensure  => present,
@@ -130,14 +136,21 @@ class environment_modules {
       export PATH="${SPIDER_DIR}/bin:${PATH}"
      ',
     }
-    file { 'eman2':
-      path    => '/etc/profile.d/eman2.sh',
+
+    file { 'start_cryosparc':
+      path    => '/root/start_cryosparc.sh',
+      ensure  => present,
+      mode    => '0777',
+      content => 'cryosparc start',
+    }
+
+    file { 'cryosparc':
+      path    => '/etc/profile.d/x_add_cryosparc.sh',
       ensure  => present,
       mode    => '0755',
-     content => "source /opt/EMAN2/eman2.bashrc
-    
-      ",
+      content => 'export PATH="/opt/cryosparc/bin":$PATH',
     }
+    
     file { 'phenix':
       path    => '/etc/profile.d/phenix.sh',
       ensure  => present,
@@ -146,6 +159,7 @@ class environment_modules {
     
       ",
     }
+    
     file { 'coot':
       path    => '/etc/profile.d/coot.sh',
       ensure  => present,
@@ -154,12 +168,22 @@ class environment_modules {
     
       ',
     }
+    
     file { 'chimera':
       path    => '/etc/profile.d/chimera.sh',
       ensure  => present,
       mode    => '0755',
-     content => 'export PATH=/primary/vari/software/chimera/default/bin:$PATH
+      content => 'export PATH=/primary/vari/software/chimera/default/bin:$PATH
     
+      ',
+    }
+    
+    file { 'add_frealign':
+      path    => '/etc/profile.d/z_add_frealign.sh',
+      ensure  => present,
+      mode    => '0755',
+      content => 'export PATH=${PATH}:/opt/frealign_v9.11/bin
+      
       ',
     }
   }

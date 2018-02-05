@@ -22,13 +22,21 @@ node default {
   }
 }
 
-node /^test\d+$/ {
-  include cryoem
+node aperio04, vaidc01, utility01 {
+  include common
 }
 
-node matt {
+node /matt/ {
   include common
+  include sssd
   include graylog
+}
+
+node /biobankdb/ {
+    include common
+    include sssd
+    include graylog
+    include dummy_login
 }
 
 # Matches all of the lens machines for Huilin's team
@@ -40,13 +48,14 @@ node foreman {
   include centos_server
 }
 
-# matches all of the cryoEM machines
-node /cryo[-_]em[_-]linux\d+/, gongpuvictory {
+node gongpuvictory {
   include cryoem
   include pymol_module
+  include research_centos
 }
 
-node munki {
-  include std_centos
-  include mount_drives
+# matches all of the cryoEM machines
+node /cryo[-_]em[_-]linux\d+/ {
+  include cryoem
+  include pymol_module
 }

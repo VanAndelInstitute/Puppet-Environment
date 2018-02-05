@@ -1,18 +1,23 @@
 class graylog {
-  if($::operatingsystem == 'darwin'){
-	file_line { 'graylog' :
-		path => '/etc/syslog.conf',
-        
-        # UDP required for MacOS systems
-		line => '*.* @graylog.vai.org:514',
-	}
+  case $facts['os']['name'] {
+    /[Rr]ed[Hh]at|[Cc]ent[OS|os]/:  {$line = '*.* @@graylog.vai.org:514'} # Use TCP for Linux
+    #/[Dd]arwin/:                    {$line = '*.* @graylog.vai.org:514'}  # And UDP for Mac
+    default:                        {$line = ""}                          # Don't try and configure for Windows
   }
-  elsif ($::operatingsystem == 'redhat' or $::operatingsystem == 'centos'){
-    file_line { 'graylog' :
-      path => '/etc/rsyslog.conf',
 
-      # Prefer TCP for Linux machines
-      line => '*.* @@graylog.vai.org:514',
+  if(!$line == ""){
+    file_line { 'graylog' :
+      path => '/etc/syslog.conf',
+      line => $line,
+    }
+  }
+  
+  if($facts['os']['name'] =~ /[Rr]ed[Hh]at|[Cc]ent[OS|os]/){
+
+    cron { 'uptime check':
+      command => '/usr/bin/logger "$(hostname) was reset on $(date)"',
+      user    => 'root',
+      special    => 'reboot',
     }
   }
 }

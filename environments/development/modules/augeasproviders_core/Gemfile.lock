@@ -74,7 +74,7 @@ GEM
     metaclass (0.0.4)
     method_source (0.8.2)
     mime-types (1.25.1)
-    minitar (~> 0.6)
+    minitar (0.5.4)
     mocha (1.1.0)
       metaclass (~> 0.0.1)
     multi_json (1.11.2)
@@ -141,7 +141,7 @@ GEM
       unf_ext
     unf_ext (0.0.7.1)
     vagrant-wrapper (2.0.2)
-    yard ~> 0.9.11 
+    yard (0.8.7.6)
 
 PLATFORMS
   ruby
