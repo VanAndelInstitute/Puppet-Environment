@@ -62,5 +62,29 @@
         source => 'puppet:///modules/privileges/limsdev',
       }
     }
+    /[Tt]riche\.vai\.org/: {
+      sudo::conf { 'triche':
+        ensure => present,
+        source => 'puppet:///modules/privileges/triche',
+      }
+    }
+    /[Ll]shibtest01\d+\.vai\.org/: {
+      sudo::conf { 'shibtest01':
+        ensure => present,
+        source=> 'puppet:///modules/privileges/shib',
+      }
+    }
+    /[Aa]spen\.vai\.org/: {
+      sudo::conf { 'xu':
+        ensure => present,
+        source => 'puppet:///modules/privileges/xu',
+      }
+    }
+    'szabo1.vai.org': {
+      sudo::conf { 'szabo':
+        ensure => present,
+        source => 'puppet:///modules/privileges/szabo',
+      }
+    }
  } 
 }

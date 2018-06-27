@@ -52,5 +52,4 @@ def sssd_status
   !(output =~ /failed|dead/)
 end
 
-# Grab the OS from Facter and attempt to join the machine to the AD
 adjoin(Facter.value(:operatingsystem).downcase)

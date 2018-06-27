@@ -26,6 +26,14 @@ node aperio04, vaidc01, utility01 {
   include common
 }
 
+node szabo1 {
+  include common
+  include graylog
+  include sssd
+  include mount_drives
+  include privileges
+}
+
 node /matt/ {
   include common
   include sssd

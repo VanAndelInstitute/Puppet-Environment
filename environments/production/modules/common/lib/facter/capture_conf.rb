@@ -9,6 +9,9 @@ class Configuration
 
   @@WINDOWS_PATH = "C:/ProgramData/PuppetLabs/facter/facts.d/"
   @@LINUX_PATH = "/opt/puppetlabs/facter/facts.d/"
+
+  @@WINDOWS_PUPPET = "puppet"
+  @@LINUX_PUPPET = "/opt/puppetlabs/bin/puppet"
   
   def initialize
     @os             = facter_call(:operatingsystem).downcase
@@ -18,6 +21,8 @@ class Configuration
     prefix          = "#{@filepath+@fqdn}"
     @config_file    = prefix + "_configuration.json"
     @drift_file     = prefix + "_drift.json"  
+
+    @puppet_cmd     = (@os.include? "windows") ? @@WINDOWS_PUPPET : @@LINUX_PUPPET
 
     @configuration  = capture_configuration
     @current_drift  = "" 
@@ -42,7 +47,7 @@ class Configuration
         out = `system_profiler SPApplicationsDataType`
         out.scan(/(.)+:(\s)+Version:(.)+/) {packages << $~}
       else
-        out = (`puppet resource package`).split(/\n/)
+        out = (`#{@puppet_cmd} resource package`).split(/\n/)
         out.each_slice(3).map {|slice| slice.join("\n")}
       end
     
@@ -95,7 +100,7 @@ class Configuration
 
       msg = "Drift detected on #{@fqdn}."
       
-      if drift_changed?(prev_drift, @current_drift)
+      if (drift_changed?(prev_drift, @current_drift))
         puppet_call(:err, msg)
       else
         puppet_call(:warn, msg)
@@ -138,20 +143,19 @@ class Configuration
   end
   
   def filebucket_request(type, file: "", sum: "")
-    cmd = (@os.include? "windows") ? "puppet" : "/opt/puppetlabs/bin/puppet"
     
     request = 
       case type
       when /get/
-        "#{cmd} filebucket get #{sum} --server #{@@SERVER}"
+        "#{@puppet_cmd} filebucket get #{sum} --server #{@@SERVER}"
       when /restore/
-        "#{cmd} filebucket restore #{file} #{sum} --server #{@@SERVER}"
+        "#{@puppet_cmd} filebucket restore #{file} #{sum} --server #{@@SERVER}"
       when /local_backup/
-        "#{cmd} filebucket backup #{file} -l"
+        "#{@puppet_cmd} filebucket backup #{file} -l"
       when /remote_backup/
-        "#{cmd} filebucket backup #{file} --server #{@@SERVER}"
+        "#{@puppet_cmd} filebucket backup #{file} --server #{@@SERVER}"
       when /list/ 
-        "#{cmd} filebucket -l list"
+        "#{@puppet_cmd} filebucket -l list"
       end
 
     silence_output{`#{request}`}
@@ -200,8 +204,9 @@ class Configuration
   end
 
   def save
-    File.write(@config_file, @configuration)
-    File.write(@drift_file, JSON.generate({:drift =>@current_drift}))  
+    
+    File.open(@config_file, 'w+') { |f| f.write(@configuration) }
+    File.open(@drift_file, 'w+'){|f| f.write(JSON.generate({:drift =>@current_drift}))}  
     
     if configuration_found
       filebucket_request(:local_backup, file: @config_file)
