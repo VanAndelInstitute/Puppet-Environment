@@ -16,6 +16,7 @@
 node default {
   case $facts['os']['name'] {
     /[Rr]ed[Hh]at|[Cc]ent[OS|os]/:  {include std_centos }
+    /[Uu]buntu/:                    {include std_ubuntu }
     /[Dd]arwin/:                    {include std_mac    }
     /[Ww]indows/:                   {include std_windows}
     default:                        {include common     }
@@ -26,20 +27,6 @@ node aperio04, vaidc01, utility01 {
   include common
 }
 
-node szabo1 {
-  include common
-  include graylog
-  include sssd
-  include mount_drives
-  include privileges
-}
-
-node /matt/ {
-  include common
-  include sssd
-  include graylog
-}
-
 node /biobankdb/ {
     include common
     include sssd
@@ -47,13 +34,20 @@ node /biobankdb/ {
     include dummy_login
 }
 
-# Matches all of the lens machines for Huilin's team
-node /^lens\d+$/ {
-  include research_centos
+node /cryo[-_]em[_-]linux\d+/ {
+  include cryoem
+  include pymol_module
 }
 
 node foreman {
   include centos_server
+
+  # backup and replace all configurations monthly
+  cron { 'cleanfb_monthly': 
+    command  => '/usr/bin/yes | /usr/local/bin/cleanfb --name=vai',
+    user     => 'root',
+    monthday => 1,
+  }
 }
 
 node gongpuvictory {
@@ -62,8 +56,22 @@ node gongpuvictory {
   include research_centos
 }
 
-# matches all of the cryoEM machines
-node /cryo[-_]em[_-]linux\d+/ {
-  include cryoem
-  include pymol_module
+node /^lens\d+$/ {
+  include research_centos
 }
+
+node /matt/ {
+  include common
+  include sssd
+  include graylog
+}
+
+
+node szabo1 {
+  include common
+  include graylog
+  include sssd
+  include mount_drives
+  include privileges
+}
+

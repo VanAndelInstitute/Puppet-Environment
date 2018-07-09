@@ -15,8 +15,8 @@ $host           = info_hash["host"]
 def joined (os)
   case os
   when "darwin" then return ((`dsconfigad -show | awk '/Active Directory Domain/{print $NF}'`).include? $host)
-  when "redhat","centos" then return sssd_status
-  when "windows" then return true
+  when "redhat","centos", "ubuntu" then return sssd_status
+  when "windows" then return ((`wmic computersystem get domain`).include? $domain)
   else  Puppet.notice("Error in AD join. #{os} not currently supported through Puppet.")
   end
   
@@ -37,9 +37,16 @@ def adjoin (os)
   case os
   when "darwin" 
     (`dsconfigad -add #{$host} -u #{$ad_admin} -p #{$ad_admin_pass} -domain #{$domain}`)
-  when "redhat","centos"
+  when "redhat","centos", "ubuntu"
 	(`/usr/bin/net ads join -U #{$ad_admin}%#{$ad_admin_pass} createcomputer=LinuxMachines`)
     (`/usr/sbin/authconfig --enablesssd --enablesssdauth --enablemkhomedir --updateall`)
+  when "windows"
+    return
+    $user = "$domain\$ad_admin"
+    $password = (`ConvertTo-SecureString -AsPlainText $ad_admin_pass -Force`)
+
+    credential = (`New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $user,$password`)
+    (`Add-Computer -DomainName "$domain" -Credential $credential -Restart -Force`)
   end
 end
 

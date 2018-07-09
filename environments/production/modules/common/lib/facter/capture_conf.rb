@@ -16,7 +16,7 @@ class Configuration
   def initialize
     @os             = facter_call(:operatingsystem).downcase
     @fqdn           = facter_call(:fqdn).downcase
-    
+
     @filepath       = (@os.include? "windows") ? @@WINDOWS_PATH : @@LINUX_PATH
     prefix          = "#{@filepath+@fqdn}"
     @config_file    = prefix + "_configuration.json"
@@ -36,6 +36,7 @@ class Configuration
   private
 
   def capture_configuration
+
     puppet_call(:notice, "Capturing current configuration...")
 
     json = []
@@ -61,8 +62,11 @@ class Configuration
     sum = Digest::MD5.file @config_file
     response = filebucket_request(:get, sum: sum)
     
-    File.delete(@config_file) if(response.nil? || response.empty?)
-  
+    if(response.nil? || response.empty?)
+      File.delete(@config_file)
+      return
+    end
+
     saved_configuration = JSON.parse(File.read(@config_file))
     current_configuration = JSON.parse(@configuration)
  
@@ -175,13 +179,21 @@ class Configuration
   def restore_configuration
     list = filebucket_request(:list)
     restored = false
-
     unless(list.nil? || list.empty?)
       cached_files = list.split("\n")
 
+      counter = 1.0
+      size = cached_files.size
+      puppet_call(:notice, "No configuration found at #{@config_file}. ")
+      puppet_call(:notice, "Searching for cached configuration: ")
+      
       cached_files.reverse_each do |line|
         next if(!(line.include? @config_file) || restored)
         
+        progress = (((counter / size).round(2)) * 100).truncate
+        puppet_call(:notice, "#{progress}%")
+        counter += 1
+
         sum = line.split(" ")[0]
         response = filebucket_request(:get, sum: sum)
 
@@ -189,17 +201,15 @@ class Configuration
 
           restored = true
           filebucket_request(:restore, file: @config_file, sum: sum)
-          puppet_call(:notice, 
-                      "Restored #{@config_file} from #{@@SERVER} (#{sum})")
-        
+          puppet_call(:notice, "Restored #{@config_file} from #{@@SERVER} (#{sum})")
         end
       end 
     end
 
     if !(restored)
-      puppet_call(:notice, "No configuration found at #{@config_file}. "\
-                  "Capturing a new configuration.")
       save
+      puppet_call(:notice, "No cached configuration found on server.")
+      puppet_call(:notice, "Capturing a new configuration...")
     end
   end
 
