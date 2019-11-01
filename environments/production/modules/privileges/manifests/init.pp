@@ -6,6 +6,11 @@
     content => '%hpcadmins ALL=(ALL) ALL',
   }
   
+  sudo::conf { 'user':
+    ensure  => present,
+    content => 'user ALL=(ALL) ALL',
+  }
+  
   sudo::conf { 'login':
     ensure  => present,
     content => 'login ALL=(ALL) ALL',
@@ -86,5 +91,32 @@
         source => 'puppet:///modules/privileges/szabo',
       }
     }
+    'triche-laptop.vai.org': {
+      sudo::conf { 'triche':
+        ensure => present,
+        source => 'puppet:///modules/privileges/triche',
+      }
+    }
+    /[Bb]ras\d+\.vai\.org/: {
+      sudo::conf { 'bras':
+        ensure => present,
+        source => 'puppet:///modules/privileges/bras',
+      }
+    }
+    
+    /[Tt]iedemann\d+\.vai\.org/: {
+      sudo::conf { 'rochelle':
+        ensure => present,
+        source => 'puppet:///modules/privileges/rochelle',
+      }
+    }
+    
+    /[Jj]ones\d+\.vai\.org/: {
+      sudo::conf { 'jones':
+        ensure => present,
+        source => 'puppet:///modules/privileges/jones',
+      }
+    }
+
  } 
 }

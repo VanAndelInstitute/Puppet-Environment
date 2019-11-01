@@ -52,7 +52,7 @@ class Configuration
         out.each_slice(3).map {|slice| slice.join("\n")}
       end
     
-    packages.each {|pack| json.push(extract_info_from pack)}
+    packages.each {|package| json.push(extract_info_from package)}
 
     return JSON.generate({:packages => json})
   end

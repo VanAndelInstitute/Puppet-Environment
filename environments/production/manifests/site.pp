@@ -27,6 +27,12 @@ node aperio04, vaidc01, utility01 {
   include common
 }
 
+node /zhang\d+/ {
+  include research_centos
+  include gdm_login_screen
+  include graylog
+}
+
 node /biobankdb/ {
     include common
     include sssd
