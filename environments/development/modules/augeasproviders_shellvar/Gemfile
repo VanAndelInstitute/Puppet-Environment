@@ -41,5 +41,5 @@ group :development, :unit_tests do
   gem 'coveralls',                                         :require => false unless RUBY_VERSION =~ /^1\.8/
   gem 'simplecov', '~> 0.7.0',                             :require => false
   gem 'yard',                                              :require => false
-  gem 'redcarpet', '~> 2.0',                               :require => false
+  gem 'redcarpet', '~> 3.5',                               :require => false
 end
